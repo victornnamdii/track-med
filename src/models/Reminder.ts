@@ -10,7 +10,7 @@ class Reminder extends Model {
   declare userNotificationType: 'WHATSAPP' | 'EMAIL' | 'SMS';
   declare medicationId: string;
   declare startDate: Date;
-  declare times: string[];
+  declare hours: number[];
   declare endDate: Date;
   declare status: boolean;
 }
@@ -49,8 +49,8 @@ Reminder.init(
       type: DataTypes.DATE,
       allowNull: false
     },
-    times: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
+    hours: {
+      type: DataTypes.ARRAY(DataTypes.INTEGER),
       allowNull: false,
       validate: {
         notEmpty: {
