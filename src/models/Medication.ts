@@ -7,8 +7,9 @@ import User from './User';
 type drugInfo = {
   drugName: string;
   dose: string;
-  frequency: number;
+  frequency: string;
   startDate: string;
+  hours: number[];
 }[];
 
 const checkDate = (string: string) => {
@@ -19,11 +20,25 @@ const checkDate = (string: string) => {
   });
 };
 
+const standardizedDosage = {
+  '1': [8],
+  '2': [8, 20],
+  '3': [8, 13, 20],
+  '4': [8, 12, 16, 20],
+  '5': [4, 8, 12, 16, 20],
+  '3h': [0, 3, 6, 9, 12, 15, 18, 21],
+  '4h': [1, 5, 9, 13, 17, 21],
+  '6h': [5, 11, 17, 23],
+  '8h': [7, 15, 23],
+  '12h': [8, 20],
+  'Bedtime': [20]
+};
+
 class Medication extends Model {
   declare id: string;
   declare userId: string;
   declare name: string;
-  declare drugInfo: drugInfo;
+  declare drugInfo: drugInfo | string;
 }
 
 Medication.init(
@@ -55,7 +70,7 @@ Medication.init(
           }
 
           drugInfo.forEach((drug) => {
-            if (Object.keys(drug).length > 5) {
+            if (Object.keys(drug).length > 4) {
               throw new BodyError('Excess drug information');
             }
             if (!drug.drugName || typeof drug.drugName !== 'string') {
@@ -64,9 +79,14 @@ Medication.init(
             if (!drug.dose || typeof drug.dose !== 'string') {
               throw new BodyError(`Dosage is required for ${drug.drugName}`);
             }
-            if (!drug.frequency || typeof drug.frequency !== 'number') {
+            if (!drug.frequency || typeof drug.frequency !== 'string') {
               throw new BodyError(
                 `Dosage frequency is required for ${drug.drugName}`
+              );
+            }
+            if (!Object.keys(standardizedDosage).includes(drug.frequency)) {
+              throw new BodyError(
+                `Please select a valid frequency for ${drug.drugName}`
               );
             }
             if (!drug.startDate) {
@@ -103,6 +123,13 @@ Medication.init(
         instance.name = `${instance.name[0].toUpperCase()}${instance.name
           .slice(1)
           .toLowerCase()}`;
+        
+        const drugInfo = JSON.parse(instance.drugInfo as string) as drugInfo;
+        drugInfo.forEach((info) => {
+          info.hours = standardizedDosage[info.frequency as keyof typeof standardizedDosage];
+        });
+
+        instance.drugInfo = JSON.stringify(drugInfo);
       },
     },
   }
