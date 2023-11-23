@@ -6,6 +6,8 @@ import env from './config/env';
 import { pageNotFound, serverErrorHandler } from './middlewares/errorHandlers';
 import userRouter from './routers/userRouter';
 import sessionConfig from './config/session';
+import './config/passport';
+import startScheduledJobs from './lib/scheduling';
 
 const app = express();
 const port = env.PORT;
@@ -16,8 +18,6 @@ app.use(cookieParser());
 app.use(sessionConfig);
 app.use(passport.initialize());
 app.use(passport.session());
-import './config/passport';
-import startScheduledJobs from './lib/scheduling';
 
 connectToDB().then(() => {
   app.listen(port, () => {
