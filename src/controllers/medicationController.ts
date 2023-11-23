@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import isUUID from 'validator/lib/isUUID';
-import Medication from '../models/Medication';
+import { Medication } from '../models/Medication';
 
 class MedicationController {
   static async addMedication(req: Request, res: Response, next: NextFunction) {

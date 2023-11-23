@@ -116,4 +116,4 @@ Medication.init(
 
 Medication.sync({ alter: true });
 
-export default Medication;
+export { Medication, drugInfo };
