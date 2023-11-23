@@ -61,6 +61,71 @@ class MedicationController {
       next(error);
     }
   }
+
+  static async updateMedication(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { name, drugInfo } = req.body;
+      const { medicationId } = req.params;
+
+      if (!isUUID(medicationId, 4)) {
+        return res.status(400).json({ error: 'Invalid Medication ID' });
+      }
+
+      if(!name && !drugInfo) {
+        return res.status(400).json({ error: 'No field specified to be updated' });
+      }
+
+      const medication = await Medication.update(
+        {
+          name,
+          drugInfo: JSON.stringify(drugInfo)
+        },
+        {
+          where: {
+            userId: req.user?.id,
+            id: medicationId
+          },
+          returning: true
+        }
+      );
+
+      if (medication[0] === 0) {
+        return res.status(404).json({ error: 'Medication not found' });
+      }
+
+      res.status(201).json({
+        message: 'New medication successfully updated',
+        medication: medication[1][0],
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteMedication(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { medicationId } = req.params;
+
+      if (!isUUID(medicationId, 4)) {
+        return res.status(400).json({ error: 'Invalid Medication ID' });
+      }
+
+      const medication = await Medication.destroy({
+        where: {
+          id: medicationId,
+          userId: req.user?.id
+        }
+      });
+
+      if (medication === 0) {
+        return res.status(404).json({ error: 'Medication not found' });
+      }
+
+      res.status(200).json({ message: 'Medication successfully deleted' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default MedicationController;
