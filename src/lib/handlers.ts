@@ -21,6 +21,12 @@ const sequelizeErrorHandler = (
   error: BaseError
 ): { status: number; message: string } => {
   if (error instanceof UniqueConstraintError) {
+    if ('name' in error.fields) {
+      return {
+        status: 400,
+        message: `You already have a medication named ${error.fields.name}`
+      };
+    }
     return { status: 400, message: error.errors[0].message };
   }
   if (error instanceof ValidationError) {

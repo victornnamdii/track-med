@@ -8,6 +8,7 @@ import userRouter from './routers/userRouter';
 import sessionConfig from './config/session';
 import './config/passport';
 import startScheduledJobs from './lib/scheduling';
+import medicationRouter from './routers/medicationRouter';
 
 const app = express();
 const port = env.PORT;
@@ -31,6 +32,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use('/auth', userRouter);
+app.use('/medications', medicationRouter);
 
 app.use(pageNotFound);
 app.use(serverErrorHandler);

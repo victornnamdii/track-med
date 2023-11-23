@@ -21,7 +21,7 @@ class UserController {
       } = req.body;
 
       const user = await User.create({
-        email: email?.toLowerCase() ?? undefined,
+        email,
         firstName,
         lastName,
         phoneNumber,
