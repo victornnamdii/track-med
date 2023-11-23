@@ -99,6 +99,10 @@ Medication.init(
         fields: ['userId', 'name'],
         name: 'User Medication',
       },
+      {
+        fields: ['userId'],
+        using: 'BTREE'
+      }
     ],
     hooks: {
       afterValidate(instance) {

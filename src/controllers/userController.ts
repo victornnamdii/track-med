@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { SessionData } from 'express-session';
 import passport from 'passport';
 import bcrypt from 'bcrypt';
+import isUUID from 'validator/lib/isUUID';
 import User from '../models/User';
 import { hashString } from '../lib/handlers';
 import redisClient from '../config/redis';
@@ -90,7 +91,7 @@ class UserController {
 
       const hashedString = await redisClient.get(`trackmed_verify_${userId}`);
 
-      if (hashedString !== null) {
+      if (hashedString !== null && isUUID(userId, 4)) {
         const correctUrl = await bcrypt.compare(uniqueString, hashedString);
         if (correctUrl) {
           await User.update({ isVerified: true }, { where: { id: userId } });
