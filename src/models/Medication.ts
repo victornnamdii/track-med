@@ -8,7 +8,6 @@ type drugInfo = {
   drugName: string;
   dose: string;
   frequency: number;
-  totalQty: number;
   startDate: string;
 }[];
 
@@ -68,11 +67,6 @@ Medication.init(
             if (!drug.frequency || typeof drug.frequency !== 'number') {
               throw new BodyError(
                 `Dosage frequency is required for ${drug.drugName}`
-              );
-            }
-            if (!drug.totalQty || typeof drug.totalQty !== 'number') {
-              throw new BodyError(
-                `Total quantity of ${drug.drugName} prescribed is required`
               );
             }
             if (!drug.startDate) {
