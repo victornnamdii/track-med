@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import isUUID from 'validator/lib/isUUID';
 import { Medication } from '../models/Medication';
+import ReminderClient from '../lib/ReminderClient';
 
 class MedicationController {
   static async addMedication(req: Request, res: Response, next: NextFunction) {
@@ -12,6 +13,8 @@ class MedicationController {
         name,
         drugInfo: JSON.stringify(drugInfo)
       });
+
+      await ReminderClient.createReminders(medication);
 
       res.status(201).json({
         message: 'New medication successfully created',

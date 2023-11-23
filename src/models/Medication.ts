@@ -10,6 +10,7 @@ type drugInfo = {
   frequency: string;
   startDate: string;
   hours: number[];
+  endDate: string;
 }[];
 
 const checkDate = (string: string) => {
@@ -70,7 +71,7 @@ Medication.init(
           }
 
           drugInfo.forEach((drug) => {
-            if (Object.keys(drug).length > 4) {
+            if (Object.keys(drug).length > 5) {
               throw new BodyError('Excess drug information');
             }
             if (!drug.drugName || typeof drug.drugName !== 'string') {
@@ -97,6 +98,17 @@ Medication.init(
             if (!checkDate(drug.startDate)) {
               throw new BodyError(
                 `Start date for ${drug
+                  .drugName} should be specified in the format YYYY-MM-DD`
+              );
+            }
+            if (!drug.endDate) {
+              throw new BodyError(
+                `End date for ${drug.drugName} is required`
+              );
+            }
+            if (!checkDate(drug.endDate)) {
+              throw new BodyError(
+                `End date for ${drug
                   .drugName} should be specified in the format YYYY-MM-DD`
               );
             }
