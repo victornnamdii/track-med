@@ -9,6 +9,7 @@ import sessionConfig from './config/session';
 import './config/passport';
 import startScheduledJobs from './lib/scheduling';
 import medicationRouter from './routers/medicationRouter';
+import './models/index';
 
 const app = express();
 const port = env.PORT;

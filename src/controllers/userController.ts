@@ -8,6 +8,7 @@ import { hashString } from '../lib/handlers';
 import redisClient from '../config/redis';
 import BodyError from '../lib/BodyError';
 import sendEmailQueue from '../lib/queues/sendUserVerificationMail';
+import ReminderClient from '../lib/ReminderClient';
 
 class UserController {
   static async addUser(req: Request, res: Response, next: NextFunction) {
@@ -72,6 +73,10 @@ class UserController {
         notificationType,
         password: newPassword ? await hashString(newPassword) : undefined,
       });
+
+      if (notificationType) {
+        await ReminderClient.changeNotificationType(user.id, user.notificationType);
+      }
 
       await redisClient.update(`trackmed_user_${user.id}`, JSON.stringify(user));
 

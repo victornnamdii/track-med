@@ -132,16 +132,20 @@ Medication.init(
     ],
     hooks: {
       afterValidate(instance) {
-        instance.name = `${instance.name[0].toUpperCase()}${instance.name
-          .slice(1)
-          .toLowerCase()}`;
+        if (instance.name) {
+          instance.name = `${instance.name[0].toUpperCase()}${instance.name
+            .slice(1)
+            .toLowerCase()}`;
+        }
         
-        const drugInfo = JSON.parse(instance.drugInfo as string) as drugInfo;
-        drugInfo.forEach((info) => {
-          info.hours = standardizedDosage[info.frequency as keyof typeof standardizedDosage];
-        });
+        if (instance.drugInfo) {
+          const drugInfo = JSON.parse(instance.drugInfo as string) as drugInfo;
+          drugInfo.forEach((info) => {
+            info.hours = standardizedDosage[info.frequency as keyof typeof standardizedDosage];
+          });
 
-        instance.drugInfo = JSON.stringify(drugInfo);
+          instance.drugInfo = JSON.stringify(drugInfo);
+        }
       },
     },
   }

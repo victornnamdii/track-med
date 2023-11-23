@@ -15,12 +15,32 @@ class ReminderClient {
           medicationId: medication.id,
           startDate: new Date(info.startDate),
           hours: info.hours,
-          endDate: new Date(info.endDate)
+          endDate: new Date(info.endDate),
         });
       } catch (error) {
         console.log(error);
       }
     });
+  }
+
+  static async updateReminders(medication: Medication) {
+    await Reminder.destroy({ where: { medicationId: medication.id } });
+
+    ReminderClient.createReminders(medication);
+  }
+
+  static async changeNotificationType(
+    userId: string,
+    notificationType: 'WHATSAPP' | 'EMAIL' | 'SMS'
+  ) {
+    await Reminder.update(
+      {
+        userNotificationType: notificationType
+      },
+      {
+        where: { userId }
+      }
+    );
   }
 }
 

@@ -92,6 +92,10 @@ class MedicationController {
         }
       );
 
+      if (drugInfo) {
+        await ReminderClient.updateReminders(medication[1][0]);
+      }
+
       if (medication[0] === 0) {
         return res.status(404).json({ error: 'Medication not found' });
       }

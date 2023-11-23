@@ -30,7 +30,7 @@ const serverErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
       return res.status(400).json({ error: err.message });
     } else if (err instanceof BaseError) {
       const error = sequelizeErrorHandler(err);
-      // console.log(err);
+      console.log(err);
       return res.status(error.status).json({ error: error.message });
     }
     console.log(err);

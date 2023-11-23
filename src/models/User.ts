@@ -101,7 +101,9 @@ User.init(
     sequelize: sq,
     hooks: {
       afterValidate(instance) {
-        instance.email = instance.email.toLowerCase();
+        if (instance.email) {
+          instance.email = instance.email.toLowerCase();
+        }
       },
     }
   }
