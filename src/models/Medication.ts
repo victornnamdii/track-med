@@ -1,4 +1,5 @@
 import { DataTypes, Model } from 'sequelize';
+import isDate from 'validator/lib/isDate';
 import { sq } from '../config/db';
 import BodyError from '../lib/BodyError';
 import User from './User';
@@ -8,7 +9,16 @@ type drugInfo = {
   dose: string;
   frequency: number;
   totalQty: number;
+  startDate: string;
 }[];
+
+const checkDate = (string: string) => {
+  return isDate(string, {
+    format: 'YYYY-MM-DD',
+    strictMode: true,
+    delimiters: ['-'],
+  });
+};
 
 class Medication extends Model {
   declare id: string;
@@ -46,7 +56,7 @@ Medication.init(
           }
 
           drugInfo.forEach((drug) => {
-            if (Object.keys(drug).length > 4) {
+            if (Object.keys(drug).length > 5) {
               throw new BodyError('Excess drug information');
             }
             if (!drug.drugName || typeof drug.drugName !== 'string') {
@@ -63,6 +73,17 @@ Medication.init(
             if (!drug.totalQty || typeof drug.totalQty !== 'number') {
               throw new BodyError(
                 `Total quantity of ${drug.drugName} prescribed is required`
+              );
+            }
+            if (!drug.startDate) {
+              throw new BodyError(
+                `Start date for ${drug.drugName} is required`
+              );
+            }
+            if (!checkDate(drug.startDate)) {
+              throw new BodyError(
+                `Start date for ${drug
+                  .drugName} should be specified in the format YYYY-MM-DD`
               );
             }
           });
