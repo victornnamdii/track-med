@@ -8,6 +8,7 @@
     "build": "tsc",
     "predev": "npm run build",
     "dev": "concurrently \"tsc --watch\" \"nodemon -q .\"",
+    "prestart": "npm run build",
     "start": "node .",
     "pretest": "npm run build",
     "test": "mocha --exit dist/tests/**/*.test.js"
