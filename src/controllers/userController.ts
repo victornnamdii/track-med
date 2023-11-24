@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { NextFunction, Request, Response } from 'express';
 import { SessionData } from 'express-session';
 import passport from 'passport';
@@ -53,6 +54,7 @@ class UserController {
         notificationType,
       } = req.body;
 
+      // @ts-ignore
       const user = await User.findByPk(req.user?.id) as User;
 
       if (newPassword) {
@@ -162,6 +164,7 @@ class UserController {
 
   static async deleteUser(req: Request, res: Response, next: NextFunction) {
     try {
+      // @ts-ignore
       const id = req.user?.id as string;
 
       await User.destroy({ where: { id }});
@@ -172,11 +175,14 @@ class UserController {
         if (!err) {
           // @ts-expect-error: "Unknown"
           const userSessions = sessions?.filter((session: SessionData) => {
+            // @ts-ignore
             return session.passport?.user?.id === id;
           });
 
           userSessions?.forEach((session: SessionData) => {
+            // @ts-ignore
             session.passport.user = undefined;
+            // @ts-ignore
             req.sessionStore.set(session.id, session, (err) => {
               if (err) {
                 console.log(err);

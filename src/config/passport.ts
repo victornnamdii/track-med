@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import passport from 'passport';
 import bcrypt from 'bcrypt';
 import { Strategy } from 'passport-local';
@@ -30,6 +31,7 @@ passport.use(new Strategy(customFields, async (email, password, done) => {
 passport.serializeUser(async (user, done) => {
   try {
     await redisClient.set(
+      // @ts-ignore
       `trackmed_user_${user.id}`,
       JSON.stringify(user),
       1 * 24 * 60 * 60
@@ -37,6 +39,7 @@ passport.serializeUser(async (user, done) => {
   } catch (error) {
     return done(error);
   }
+  // @ts-ignore
   done(null, { id: user.id });
 });
 

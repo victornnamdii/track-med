@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { NextFunction, Request, Response } from 'express';
 import isUUID from 'validator/lib/isUUID';
 import { Medication } from '../models/Medication';
@@ -9,6 +10,7 @@ class MedicationController {
       const { name, drugInfo } = req.body;
 
       const medication = await Medication.create({
+        // @ts-ignore
         UserId: req.user?.id,
         name,
         drugInfo
@@ -29,7 +31,8 @@ class MedicationController {
     try {
 
       const medications = await Medication.findAll({
-        where: { 
+        where: {
+          // @ts-ignore
           UserId: req.user?.id
         } 
       });
@@ -49,7 +52,8 @@ class MedicationController {
       }
 
       const medication = await Medication.findOne({
-        where: { 
+        where: {
+          // @ts-ignore
           UserId: req.user?.id,
           id: MedicationId
         } 
@@ -85,6 +89,7 @@ class MedicationController {
         },
         {
           where: {
+            // @ts-ignore
             UserId: req.user?.id,
             id: MedicationId
           },
@@ -120,6 +125,7 @@ class MedicationController {
       const medication = await Medication.destroy({
         where: {
           id: MedicationId,
+          // @ts-ignore
           UserId: req.user?.id
         }
       });
