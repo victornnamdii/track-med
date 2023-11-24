@@ -1,4 +1,5 @@
 import { DataTypes, Model } from 'sequelize';
+import shortId from 'shortid';
 import { sq } from '../config/db';
 import User from './User';
 import { Medication } from './Medication';
@@ -15,6 +16,7 @@ class Reminder extends Model {
   declare endDate: Date;
   declare status: boolean;
   declare message: string;
+  declare token: string;
 }
 
 Reminder.init(
@@ -74,6 +76,13 @@ Reminder.init(
     message: {
       type: DataTypes.STRING,
       allowNull: false
+    },
+    token: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: function generateToken() {
+        return shortId.generate();
+      }
     }
   },
   {

@@ -16,6 +16,7 @@ class ReminderClient {
           } now. This is the reminder for your ${addSuffix(
             info.hours.indexOf(hour) + 1
           )} dose today.`;
+
           await Reminder.create({
             UserId: medication.UserId,
             userNotificationType: user?.notificationType,
@@ -35,7 +36,7 @@ class ReminderClient {
   static async updateReminders(medication: Medication) {
     await Reminder.destroy({ where: { MedicationId: medication.id } });
 
-    ReminderClient.createReminders(medication);
+    await ReminderClient.createReminders(medication);
   }
 
   static async changeNotificationType(

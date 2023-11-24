@@ -100,6 +100,8 @@ class UserController {
         const correctUrl = await bcrypt.compare(uniqueString, hashedString);
         if (correctUrl) {
           await User.update({ isVerified: true }, { where: { id: UserId } });
+          redisClient.del(`trackmed_verify_${UserId}`)
+            .catch((err) => console.log(err));
           return res.status(200).json({
             message: 'User successfully verified',
           });
