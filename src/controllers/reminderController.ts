@@ -28,7 +28,13 @@ class ReminderController {
       }
 
       status[date as string] = true;
-      await reminder.update({ status });
+
+      await Reminder.update(
+        { status },
+        {
+          where: { id: ReminderId }
+        }
+      );
 
       res.status(200).json({ message: 'Thank you for taking your drugs!' });
     } catch (error) {

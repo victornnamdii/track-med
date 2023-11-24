@@ -4,6 +4,7 @@ import Reminder from '../../models/Reminder';
 import { Medication } from '../../models/Medication';
 import User from '../../models/User';
 import sendEmailNotificationQueue from '../queues/sendEmailNotification';
+import sendWhatsappNotificationQueue from '../queues/sendEmailNotification copy';
 
 const sendNotifications = new CronJob('* * * * *', async () => {
   try {
@@ -36,6 +37,8 @@ const sendNotifications = new CronJob('* * * * *', async () => {
       if (reminder.userNotificationType === 'EMAIL') {
         // Send Mail
         sendEmailNotificationQueue.add({ reminder, date });
+      } else if (reminder.userNotificationType === 'WHATSAPP') {
+        sendWhatsappNotificationQueue.add({ reminder, date });
       }
     });
   } catch (error) {

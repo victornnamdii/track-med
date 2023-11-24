@@ -16,7 +16,8 @@ const env = {
   REDIS_HOST: process.env.REDIS_HOST as string,
   REDIS_PASSWORD: process.env.REDIS_PASSWORD as string,
   REDIS_PORT: process.env.REDIS_PORT as string,
-  HOST: process.env.HOST as string
+  HOST: process.env.HOST as string,
+  WHAPI_TOKEN: process.env.WHAPI_TOKEN as string
 };
 
 export default env;
