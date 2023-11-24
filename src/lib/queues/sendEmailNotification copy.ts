@@ -4,11 +4,7 @@ import Reminder from '../../models/Reminder';
 import whatsappClient from '../whatsappService';
 
 const sendWhatsappNotificationQueue = new Queue('Whatsapp Notification', {
-  redis: {
-    host: env.REDIS_HOST,
-    password: env.REDIS_PASSWORD,
-    port: Number(env.REDIS_PORT),
-  },
+  redis: env.REDIS_URL,
   defaultJobOptions: {
     attempts: 3,
     backoff: {

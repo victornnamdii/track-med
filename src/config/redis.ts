@@ -1,7 +1,10 @@
 import { createClient } from 'redis';
+import env from './env';
 
 class RedisClient {
-  client = createClient();
+  client = createClient({
+    url: env.REDIS_URL
+  });
   constructor() {
     this.client.connect();
     this.client.on('connect', () => {

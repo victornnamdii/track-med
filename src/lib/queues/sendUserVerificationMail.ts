@@ -3,11 +3,7 @@ import emailService from '../emailService';
 import env from '../../config/env';
 
 const sendEmailQueue = new Queue('User Verification', {
-  redis: {
-    host: env.REDIS_HOST,
-    password: env.REDIS_PASSWORD,
-    port: Number(env.REDIS_PORT),
-  },
+  redis: env.REDIS_URL,
   defaultJobOptions: {
     attempts: 3,
     backoff: {

@@ -4,11 +4,7 @@ import env from '../../config/env';
 import Reminder from '../../models/Reminder';
 
 const sendEmailNotificationQueue = new Queue('Email Notification', {
-  redis: {
-    host: env.REDIS_HOST,
-    password: env.REDIS_PASSWORD,
-    port: Number(env.REDIS_PORT),
-  },
+  redis: env.REDIS_URL,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
