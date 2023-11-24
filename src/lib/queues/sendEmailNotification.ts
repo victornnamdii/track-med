@@ -1,6 +1,7 @@
 import Queue from 'bull';
 import emailService from '../emailService';
 import env from '../../config/env';
+import Reminder from '../../models/Reminder';
 
 const sendEmailNotificationQueue = new Queue('Email Notification', {
   redis: {
@@ -23,14 +24,24 @@ sendEmailNotificationQueue.on('error', (error) => {
 });
 
 sendEmailNotificationQueue.process(async (job, done) => {
-  const { reminder } = job.data;
+  const { reminder, date } = job.data;
   console.log(`Sending Email Notification to ${reminder.User?.email}`);
   try {
+    const status = reminder.status;
+    status[date] = false;
+    await Reminder.update(
+      {
+        status
+      },
+      {
+        where: { id: reminder.id }
+      }
+    );
     await emailService.sendReminderMail(
       reminder.User.email,
       reminder.Medication.name,
       reminder.message,
-      `${env.HOST}/reminders/complete/${reminder.id}?token=${reminder.token}`
+      `${env.HOST}/reminders/complete/${reminder.id}?token=${reminder.token}&date=${date}`
     );
     console.log(`Sent Email Notification to ${reminder.User?.email}`);
   } catch (error) {

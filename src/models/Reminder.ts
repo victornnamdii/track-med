@@ -14,7 +14,7 @@ class Reminder extends Model {
   declare startDate: Date;
   declare time: string;
   declare endDate: Date;
-  declare status: boolean;
+  declare status: { [keys: string]: boolean };
   declare message: string;
   declare token: string;
 }
@@ -69,9 +69,8 @@ Reminder.init(
       allowNull: false
     },
     status: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false
+      type: DataTypes.JSON,
+      defaultValue: {}
     },
     message: {
       type: DataTypes.STRING,

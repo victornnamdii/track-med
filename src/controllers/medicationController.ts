@@ -11,7 +11,7 @@ class MedicationController {
       const medication = await Medication.create({
         UserId: req.user?.id,
         name,
-        drugInfo: JSON.stringify(drugInfo)
+        drugInfo
       });
 
       await ReminderClient.createReminders(medication);
@@ -81,7 +81,7 @@ class MedicationController {
       const medication = await Medication.update(
         {
           name,
-          drugInfo: JSON.stringify(drugInfo)
+          drugInfo
         },
         {
           where: {

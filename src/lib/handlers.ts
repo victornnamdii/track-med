@@ -59,8 +59,8 @@ const addSuffix = (number: number) => {
 
 const sortTimes = (times: string[]) => {
   const sortedTimes = times.map((time) => {
-    const formattedTime =
-      time.length === 4 ? `${time[0].padStart(2, '0')}${time.slice(1)}` : time;
+    const [hour, minute] = time.split(':');
+    const formattedTime = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
     return formattedTime;
   });
   sortedTimes.sort();

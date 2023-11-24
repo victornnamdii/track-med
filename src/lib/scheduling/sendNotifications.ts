@@ -11,7 +11,15 @@ const sendNotifications = new CronJob('* * * * *', async () => {
     const time = `${jobStartTime
       .getHours()
       .toString()
-      .padStart(2, '0')}:${jobStartTime.getMinutes()}`;
+      .padStart(2, '0')}:${jobStartTime
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`;
+    
+    const date = `${jobStartTime
+      .getFullYear()}-${jobStartTime
+      .getMonth() + 1}-${jobStartTime
+      .getDate()}`;
     
     console.log(time);
 
@@ -27,7 +35,7 @@ const sendNotifications = new CronJob('* * * * *', async () => {
     ValidReminders.forEach((reminder) => {
       if (reminder.userNotificationType === 'EMAIL') {
         // Send Mail
-        sendEmailNotificationQueue.add({ reminder });
+        sendEmailNotificationQueue.add({ reminder, date });
       }
     });
   } catch (error) {

@@ -75,8 +75,8 @@ Medication.init(
       type: DataTypes.JSON,
       allowNull: false,
       validate: {
-        isCorrectSchema(value: string) {
-          const drugInfo = JSON.parse(value) as drugInfo;
+        isCorrectSchema(value: drugInfo) {
+          const drugInfo = value;
           if (!Array.isArray(drugInfo)) {
             throw new BodyError('Drug information should be a list');
           }
@@ -185,7 +185,7 @@ Medication.init(
         }
 
         if (instance.drugInfo) {
-          const drugInfo = JSON.parse(instance.drugInfo as string) as drugInfo;
+          const drugInfo = instance.drugInfo as drugInfo;
           drugInfo.forEach((info) => {
             if (info.times === 'default') {
               info.times =
@@ -200,7 +200,7 @@ Medication.init(
             delete info.customTimes;
           });
 
-          instance.drugInfo = JSON.stringify(drugInfo);
+          instance.drugInfo = drugInfo;
         }
       },
     },

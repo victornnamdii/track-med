@@ -6,7 +6,7 @@ import { addSuffix } from './handlers';
 class ReminderClient {
   static async createReminders(medication: Medication) {
     const user = await User.findByPk(medication.UserId);
-    const drugInfo = JSON.parse(medication.drugInfo as string) as drugInfo;
+    const drugInfo = medication.drugInfo as drugInfo;
 
     drugInfo.forEach((info) => {
       const times = info.times as string[];
