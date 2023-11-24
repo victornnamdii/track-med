@@ -43,6 +43,7 @@ const standardizedDosage = {
   '8h': ['07:00', '15:00', '23:00'],
   '12h': ['08:00', '20:00'],
   Bedtime: ['20:00'],
+  Other: ['20:00']
 };
 
 class Medication extends Model {

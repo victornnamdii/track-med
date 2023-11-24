@@ -15,3 +15,7 @@ This API serves as a system for users to log their medications and get reminders
 * Route to the created directory and run `npm install`.
 * Configure the environment variables from `.env.example` file.
 * Start the server with `npm start`.
+
+## Documentation
+
+This API's documentation can be found on: https://documenter.getpostman.com/view/27917912/2s9YeD8Cud
