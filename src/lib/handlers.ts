@@ -24,7 +24,7 @@ const sequelizeErrorHandler = (
     if ('name' in error.fields) {
       return {
         status: 400,
-        message: `You already have a medication named ${error.fields.name}`
+        message: `You already have a medication named ${error.fields.name}`,
       };
     }
     return { status: 400, message: error.errors[0].message };
@@ -43,7 +43,7 @@ const sequelizeErrorHandler = (
 };
 
 const addSuffix = (number: number) => {
-  const  j = number % 10;
+  const j = number % 10;
   const k = number % 100;
   if (j == 1 && k != 11) {
     return number + 'st';
@@ -57,4 +57,14 @@ const addSuffix = (number: number) => {
   return number + 'th';
 };
 
-export { hashString, sequelizeErrorHandler, addSuffix };
+const sortTimes = (times: string[]) => {
+  const sortedTimes = times.map((time) => {
+    const formattedTime =
+      time.length === 4 ? `${time[0].padStart(2, '0')}${time.slice(1)}` : time;
+    return formattedTime;
+  });
+  sortedTimes.sort();
+  return sortedTimes;
+};
+
+export { hashString, sequelizeErrorHandler, addSuffix, sortTimes };

@@ -11,10 +11,10 @@ class EmailService {
     pool: true,
     auth: {
       user: env.EMAIL_ADDRESS,
-      pass: env.EMAIL_PASSWORD
-    }
+      pass: env.EMAIL_PASSWORD,
+    },
   });
-  constructor () {
+  constructor() {
     this.transporter.verify((err, success) => {
       if (!success) {
         throw err;
@@ -39,6 +39,22 @@ class EmailService {
       hashedString,
       6 * 60 * 60
     );
+    await this.transporter.sendMail(mailOptions);
+  }
+
+  async sendReminderMail(
+    email: string,
+    medicationName: string,
+    message: string,
+    link: string
+  ) {
+    const mailOptions = {
+      from: 'TRACK MED',
+      to: email,
+      subject: `Reminder for ${medicationName}`,
+      html: `<p>${message}</p><p>Click <a href=${link}>here</a> if you have taken them.</p>`,
+    };
+
     await this.transporter.sendMail(mailOptions);
   }
 }

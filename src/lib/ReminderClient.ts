@@ -9,21 +9,25 @@ class ReminderClient {
     const drugInfo = JSON.parse(medication.drugInfo as string) as drugInfo;
 
     drugInfo.forEach((info) => {
-      info.hours.forEach(async (hour) => {
+      const times = info.times as string[];
+      times.forEach(async (time) => {
         try {
           const message = `Hey ${user?.firstName
           }! Remember to take ${info.dose} of your ${info.drugName
-          } now. This is the reminder for your ${addSuffix(
-            info.hours.indexOf(hour) + 1
+          }. This is the reminder for your ${addSuffix(
+            times.indexOf(time) + 1
           )} dose today.`;
+
+          const endDate = new Date(info.endDate);
+          endDate.setDate(endDate.getDate() + 1);
 
           await Reminder.create({
             UserId: medication.UserId,
             userNotificationType: user?.notificationType,
             MedicationId: medication.id,
             startDate: new Date(info.startDate),
-            hour,
-            endDate: new Date(info.endDate),
+            time,
+            endDate,
             message
           });
         } catch (error) {

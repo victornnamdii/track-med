@@ -2,7 +2,7 @@ import { DataTypes, Model } from 'sequelize';
 import shortId from 'shortid';
 import { sq } from '../config/db';
 import User from './User';
-import { Medication } from './Medication';
+import { Medication, checkTime } from './Medication';
 import BodyError from '../lib/BodyError';
 
 
@@ -12,7 +12,7 @@ class Reminder extends Model {
   declare userNotificationType: 'WHATSAPP' | 'EMAIL' | 'SMS';
   declare MedicationId: string;
   declare startDate: Date;
-  declare hour: number;
+  declare time: string;
   declare endDate: Date;
   declare status: boolean;
   declare message: string;
@@ -53,13 +53,13 @@ Reminder.init(
       type: DataTypes.DATE,
       allowNull: false
     },
-    hour: {
-      type: DataTypes.INTEGER,
+    time: {
+      type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        isCorrectHour(value: number) {
-          if (value < 0 || value > 23) {
-            throw new BodyError('Value for hour should be between 0  and 23');
+        isCorrectHour(value: string) {
+          if (!checkTime(value)) {
+            throw new BodyError('Value for time should be in the format HH:MM');
           }
         },
       },

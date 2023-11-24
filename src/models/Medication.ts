@@ -1,16 +1,19 @@
 import { DataTypes, Model } from 'sequelize';
 import isDate from 'validator/lib/isDate';
+import isTime from 'validator/lib/isTime';
 import { sq } from '../config/db';
 import BodyError from '../lib/BodyError';
 import User from './User';
+import { sortTimes } from '../lib/handlers';
 
 type drugInfo = {
   drugName: string;
   dose: string;
   frequency: string;
   startDate: string;
-  hours: number[];
+  times: string[] | 'default' | 'custom';
   endDate: string;
+  customTimes?: string[];
 }[];
 
 const checkDate = (string: string) => {
@@ -21,18 +24,25 @@ const checkDate = (string: string) => {
   });
 };
 
+const checkTime = (string: string) => {
+  return isTime(string, {
+    hourFormat: 'hour24',
+    mode: 'default'
+  });
+};
+
 const standardizedDosage = {
-  '1': [8],
-  '2': [8, 20],
-  '3': [8, 13, 20],
-  '4': [8, 12, 16, 20],
-  '5': [4, 8, 12, 16, 20],
-  '3h': [0, 3, 6, 9, 12, 15, 18, 21],
-  '4h': [1, 5, 9, 13, 17, 21],
-  '6h': [5, 11, 17, 23],
-  '8h': [7, 15, 23],
-  '12h': [8, 20],
-  'Bedtime': [20]
+  '1': ['08:00'],
+  '2': ['08:00', '20:00'],
+  '3': ['08:00', '13:00', '20:00'],
+  '4': ['08:00', '12:00', '16:00', '20:00'],
+  '5': ['04:00', '08:00', '12:00', '16:00', '20:00'],
+  '3h': ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+  '4h': ['01:00', '05:00', '09:00', '13:00', '17:00', '21:00'],
+  '6h': ['05:00', '11:00', '17:00', '23:00'],
+  '8h': ['07:00', '15:00', '23:00'],
+  '12h': ['08:00', '20:00'],
+  Bedtime: ['20:00'],
 };
 
 class Medication extends Model {
@@ -71,11 +81,14 @@ Medication.init(
           }
 
           drugInfo.forEach((drug) => {
-            if (Object.keys(drug).length > 5) {
-              throw new BodyError('Excess drug information');
-            }
             if (!drug.drugName || typeof drug.drugName !== 'string') {
               throw new BodyError('Drug name is required');
+            }
+            if (
+              (drug.times === 'custom' && Object.keys(drug).length > 7) ||
+              (drug.times === 'default' && Object.keys(drug).length > 6)
+            ) {
+              throw new BodyError(`Excess drug information for ${drug.drugName}`);
             }
             if (!drug.dose || typeof drug.dose !== 'string') {
               throw new BodyError(`Dosage is required for ${drug.drugName}`);
@@ -97,20 +110,52 @@ Medication.init(
             }
             if (!checkDate(drug.startDate)) {
               throw new BodyError(
-                `Start date for ${drug
-                  .drugName} should be specified in the format YYYY-MM-DD`
+                `Start date for ${drug.drugName} should be specified in the format YYYY-MM-DD`
               );
             }
             if (!drug.endDate) {
-              throw new BodyError(
-                `End date for ${drug.drugName} is required`
-              );
+              throw new BodyError(`End date for ${drug.drugName} is required`);
             }
             if (!checkDate(drug.endDate)) {
               throw new BodyError(
-                `End date for ${drug
-                  .drugName} should be specified in the format YYYY-MM-DD`
+                `End date for ${drug.drugName} should be specified in the format YYYY-MM-DD`
               );
+            }
+            if (new Date(drug.endDate) < new Date(drug.startDate)) {
+              throw new BodyError(
+                `End date for ${drug.drugName} should be after Start Date`
+              );
+            }
+            if (!drug.times || typeof drug.times !== 'string') {
+              throw new BodyError(`Dose times for ${drug.drugName} is required`);
+            }
+            if (drug.times !== 'custom' && drug.times !== 'default') {
+              throw new BodyError(
+                `Dose times for ${drug.drugName} should be either default or custom`
+              );
+            }
+            if (drug.times === 'custom') {
+              if (!drug.customTimes) {
+                throw new BodyError(
+                  `Custom times for ${drug.drugName} was not selected`
+                );
+              }
+              if (!Array.isArray(drug.customTimes)) {
+                throw new BodyError(
+                  `Invalid format for ${drug.drugName} custom hours`
+                );
+              }
+              let wrongValue = false;
+              drug.customTimes.forEach((value) => {
+                if (!checkTime(value)) {
+                  wrongValue = true;
+                }
+              });
+              if (wrongValue) {
+                throw new BodyError(
+                  `Values for ${drug.drugName}'s custom times should be in the format HH:MM`
+                );
+              }
             }
           });
         },
@@ -127,8 +172,8 @@ Medication.init(
       },
       {
         fields: ['UserId'],
-        using: 'BTREE'
-      }
+        using: 'BTREE',
+      },
     ],
     hooks: {
       afterValidate(instance) {
@@ -137,11 +182,21 @@ Medication.init(
             .slice(1)
             .toLowerCase()}`;
         }
-        
+
         if (instance.drugInfo) {
           const drugInfo = JSON.parse(instance.drugInfo as string) as drugInfo;
           drugInfo.forEach((info) => {
-            info.hours = standardizedDosage[info.frequency as keyof typeof standardizedDosage];
+            if (info.times === 'default') {
+              info.times =
+                standardizedDosage[
+                  info.frequency as keyof typeof standardizedDosage
+                ];
+            } else if (info.times === 'custom') {
+              const sortedTimes = sortTimes(info.customTimes as string[]);
+              const uniqueTimes = new Set(sortedTimes);
+              info.times = Array.from(uniqueTimes);
+            }
+            delete info.customTimes;
           });
 
           instance.drugInfo = JSON.stringify(drugInfo);
@@ -153,4 +208,4 @@ Medication.init(
 
 Medication.sync({ alter: true });
 
-export { Medication, drugInfo };
+export { Medication, drugInfo, checkTime };

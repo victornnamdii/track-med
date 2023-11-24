@@ -10,6 +10,7 @@ import './config/passport';
 import startScheduledJobs from './lib/scheduling';
 import medicationRouter from './routers/medicationRouter';
 import './models/index';
+import reminderRouter from './routers/reminderRouter';
 
 const app = express();
 const port = env.PORT;
@@ -34,6 +35,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/auth', userRouter);
 app.use('/medications', medicationRouter);
+app.use('/reminders', reminderRouter);
 
 app.use(pageNotFound);
 app.use(serverErrorHandler);
