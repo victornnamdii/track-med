@@ -6,13 +6,14 @@ import { Medication } from './Medication';
 
 class Reminder extends Model {
   declare id: string;
-  declare userId: string;
+  declare UserId: string;
   declare userNotificationType: 'WHATSAPP' | 'EMAIL' | 'SMS';
-  declare medicationId: string;
+  declare MedicationId: string;
   declare startDate: Date;
   declare hours: number[];
   declare endDate: Date;
   declare status: boolean;
+  declare message: string;
 }
 
 Reminder.init(
@@ -22,7 +23,7 @@ Reminder.init(
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    userId: {
+    UserId: {
       type: DataTypes.UUID,
       references: {
         model: User,
@@ -38,7 +39,7 @@ Reminder.init(
         },
       },
     },
-    medicationId: {
+    MedicationId: {
       type: DataTypes.UUID,
       references: {
         model: Medication,
@@ -66,6 +67,10 @@ Reminder.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false
+    },
+    message: {
+      type: DataTypes.STRING,
+      allowNull: false
     }
   },
   {

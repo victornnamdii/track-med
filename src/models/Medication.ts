@@ -37,7 +37,7 @@ const standardizedDosage = {
 
 class Medication extends Model {
   declare id: string;
-  declare userId: string;
+  declare UserId: string;
   declare name: string;
   declare drugInfo: drugInfo | string;
 }
@@ -53,7 +53,7 @@ Medication.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    userId: {
+    UserId: {
       type: DataTypes.UUID,
       references: {
         model: User,
@@ -122,11 +122,11 @@ Medication.init(
     indexes: [
       {
         unique: true,
-        fields: ['userId', 'name'],
+        fields: ['UserId', 'name'],
         name: 'User Medication',
       },
       {
-        fields: ['userId'],
+        fields: ['UserId'],
         using: 'BTREE'
       }
     ],

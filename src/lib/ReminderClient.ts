@@ -4,18 +4,20 @@ import Reminder from '../models/Reminder';
 
 class ReminderClient {
   static async createReminders(medication: Medication) {
-    const user = await User.findByPk(medication.userId);
+    const user = await User.findByPk(medication.UserId);
     const drugInfo = JSON.parse(medication.drugInfo as string) as drugInfo;
 
     drugInfo.forEach(async (info) => {
+      const message = `Hey! Remember to take ${info.dose} of your ${info.drugName}.`;
       try {
         await Reminder.create({
-          userId: medication.userId,
+          UserId: medication.UserId,
           userNotificationType: user?.notificationType,
-          medicationId: medication.id,
+          MedicationId: medication.id,
           startDate: new Date(info.startDate),
           hours: info.hours,
           endDate: new Date(info.endDate),
+          message
         });
       } catch (error) {
         console.log(error);
@@ -24,13 +26,13 @@ class ReminderClient {
   }
 
   static async updateReminders(medication: Medication) {
-    await Reminder.destroy({ where: { medicationId: medication.id } });
+    await Reminder.destroy({ where: { MedicationId: medication.id } });
 
     ReminderClient.createReminders(medication);
   }
 
   static async changeNotificationType(
-    userId: string,
+    UserId: string,
     notificationType: 'WHATSAPP' | 'EMAIL' | 'SMS'
   ) {
     await Reminder.update(
@@ -38,7 +40,7 @@ class ReminderClient {
         userNotificationType: notificationType
       },
       {
-        where: { userId }
+        where: { UserId }
       }
     );
   }

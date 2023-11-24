@@ -9,7 +9,7 @@ class MedicationController {
       const { name, drugInfo } = req.body;
 
       const medication = await Medication.create({
-        userId: req.user?.id,
+        UserId: req.user?.id,
         name,
         drugInfo: JSON.stringify(drugInfo)
       });
@@ -30,7 +30,7 @@ class MedicationController {
 
       const medications = await Medication.findAll({
         where: { 
-          userId: req.user?.id
+          UserId: req.user?.id
         } 
       });
 
@@ -42,16 +42,16 @@ class MedicationController {
 
   static async getAMedication(req: Request, res: Response, next: NextFunction) {
     try {
-      const { medicationId } = req.params;
+      const { MedicationId } = req.params;
 
-      if (!isUUID(medicationId, 4)) {
+      if (!isUUID(MedicationId, 4)) {
         return res.status(400).json({ error: 'Invalid Medication ID' });
       }
 
       const medication = await Medication.findOne({
         where: { 
-          userId: req.user?.id,
-          id: medicationId
+          UserId: req.user?.id,
+          id: MedicationId
         } 
       });
 
@@ -68,9 +68,9 @@ class MedicationController {
   static async updateMedication(req: Request, res: Response, next: NextFunction) {
     try {
       const { name, drugInfo } = req.body;
-      const { medicationId } = req.params;
+      const { MedicationId } = req.params;
 
-      if (!isUUID(medicationId, 4)) {
+      if (!isUUID(MedicationId, 4)) {
         return res.status(400).json({ error: 'Invalid Medication ID' });
       }
 
@@ -85,8 +85,8 @@ class MedicationController {
         },
         {
           where: {
-            userId: req.user?.id,
-            id: medicationId
+            UserId: req.user?.id,
+            id: MedicationId
           },
           returning: true
         }
@@ -111,16 +111,16 @@ class MedicationController {
 
   static async deleteMedication(req: Request, res: Response, next: NextFunction) {
     try {
-      const { medicationId } = req.params;
+      const { MedicationId } = req.params;
 
-      if (!isUUID(medicationId, 4)) {
+      if (!isUUID(MedicationId, 4)) {
         return res.status(400).json({ error: 'Invalid Medication ID' });
       }
 
       const medication = await Medication.destroy({
         where: {
-          id: medicationId,
-          userId: req.user?.id
+          id: MedicationId,
+          UserId: req.user?.id
         }
       });
 
