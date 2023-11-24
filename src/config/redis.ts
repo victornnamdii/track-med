@@ -6,6 +6,7 @@ class RedisClient {
     url: env.REDIS_URL
   });
   constructor() {
+    console.log(env.REDIS_URL);
     this.client.connect();
     this.client.on('connect', () => {
       console.log('Redis connected');
