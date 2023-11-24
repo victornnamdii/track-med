@@ -19,7 +19,6 @@ const sessionConfig = session({
     httpOnly: true,
     maxAge: 1 * 24 * 60 * 60 * 1000,
     secure: env.NODE_ENV !== 'dev',
-    sameSite: env.NODE_ENV === 'dev' ? 'strict' : 'none'
   }
 });
 
