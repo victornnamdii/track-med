@@ -1,27 +1,34 @@
 import User from '../models/User';
 import { Medication, drugInfo } from '../models/Medication';
 import Reminder from '../models/Reminder';
+import { addSuffix } from './handlers';
 
 class ReminderClient {
   static async createReminders(medication: Medication) {
     const user = await User.findByPk(medication.UserId);
     const drugInfo = JSON.parse(medication.drugInfo as string) as drugInfo;
 
-    drugInfo.forEach(async (info) => {
-      const message = `Hey! Remember to take ${info.dose} of your ${info.drugName}.`;
-      try {
-        await Reminder.create({
-          UserId: medication.UserId,
-          userNotificationType: user?.notificationType,
-          MedicationId: medication.id,
-          startDate: new Date(info.startDate),
-          hours: info.hours,
-          endDate: new Date(info.endDate),
-          message
-        });
-      } catch (error) {
-        console.log(error);
-      }
+    drugInfo.forEach((info) => {
+      info.hours.forEach(async (hour) => {
+        try {
+          const message = `Hey ${user?.firstName
+          }! Remember to take ${info.dose} of your ${info.drugName
+          } now. This is the reminder for your ${addSuffix(
+            info.hours.indexOf(hour) + 1
+          )} dose today.`;
+          await Reminder.create({
+            UserId: medication.UserId,
+            userNotificationType: user?.notificationType,
+            MedicationId: medication.id,
+            startDate: new Date(info.startDate),
+            hour,
+            endDate: new Date(info.endDate),
+            message
+          });
+        } catch (error) {
+          console.log(error);
+        }
+      });
     });
   }
 
