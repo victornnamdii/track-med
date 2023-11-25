@@ -18,7 +18,7 @@ class ReminderController {
 
       const reminder = await Reminder.findByPk(ReminderId);
       const status = reminder?.status as { [keys: string]: boolean };
-      const statusValue = status[date as string];
+      const statusValue = status ? status[date as string] : undefined;
 
       if (
         reminder === null ||
