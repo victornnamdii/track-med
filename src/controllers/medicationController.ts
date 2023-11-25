@@ -84,6 +84,7 @@ class MedicationController {
         include: [Reminder, User]
       });
 
+      // @ts-ignore
       if (medication === null || medication.UserId !== req.user?.id) {
         return res.status(404).json({ error: 'Medication not found' });
       }
