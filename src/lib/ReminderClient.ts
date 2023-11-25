@@ -28,7 +28,8 @@ class ReminderClient {
             startDate: new Date(info.startDate),
             time,
             endDate,
-            message
+            message,
+            drugName: info.drugName
           });
         } catch (error) {
           console.log(error);

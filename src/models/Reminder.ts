@@ -11,12 +11,15 @@ class Reminder extends Model {
   declare UserId: string;
   declare userNotificationType: 'WHATSAPP' | 'EMAIL' | 'SMS';
   declare MedicationId: string;
+  declare drugName: string;
   declare startDate: Date;
   declare time: string;
   declare endDate: Date;
   declare status: { [keys: string]: boolean };
   declare message: string;
   declare token: string;
+  declare User: User;
+  declare Medication: Medication;
 }
 
 Reminder.init(
@@ -82,6 +85,10 @@ Reminder.init(
       defaultValue: function generateToken() {
         return shortId.generate();
       }
+    },
+    drugName: {
+      type: DataTypes.STRING,
+      allowNull: false
     }
   },
   {

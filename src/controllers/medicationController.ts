@@ -3,6 +3,9 @@ import { NextFunction, Request, Response } from 'express';
 import isUUID from 'validator/lib/isUUID';
 import { Medication } from '../models/Medication';
 import ReminderClient from '../lib/ReminderClient';
+import Reminder from '../models/Reminder';
+import { groupRemindersByName, generateReport } from '../lib/handlers';
+import User from '../models/User';
 
 class MedicationController {
   static async addMedication(req: Request, res: Response, next: NextFunction) {
@@ -64,6 +67,49 @@ class MedicationController {
       }
 
       res.status(200).json({ medication });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getMedicationReport(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { MedicationId } = req.params;
+
+      if (!isUUID(MedicationId, 4)) {
+        return res.status(400).json({ error: 'Invalid Medication ID' });
+      }
+
+      const medication = await Medication.findByPk(MedicationId, {
+        include: [Reminder, User]
+      });
+
+      if (medication === null || medication.UserId !== req.user?.id) {
+        return res.status(404).json({ error: 'Medication not found' });
+      }
+
+      const medicationReminders = medication.Reminders;
+      const validReminders = medicationReminders.filter((reminder) => {
+        return Object.keys(reminder.status).length > 0;
+      });
+
+      if (validReminders.length === 0) {
+        return res.status(400).json({
+          error: 'Start date/time for drugs hasn\'t reached'
+        });
+      }
+      const groupedReminders =  groupRemindersByName(validReminders);
+      const report = generateReport(groupedReminders);
+
+      const user =  medication.User;
+      // @ts-expect-error: "Security"
+      user.password = undefined;
+
+      res.status(200).json({
+        message: `Report for ${medication.name} successfully generated`,
+        report,
+        user
+      });
     } catch (error) {
       next(error);
     }

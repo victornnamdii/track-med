@@ -2,6 +2,8 @@ import { DataTypes, Model } from 'sequelize';
 import isMobilePhone from 'validator/lib/isMobilePhone';
 import { sq } from '../config/db';
 import BodyError from '../lib/BodyError';
+import { Medication } from './Medication';
+import Reminder from './Reminder';
 
 class User extends Model {
   declare id: string;
@@ -12,6 +14,8 @@ class User extends Model {
   declare phoneNumber: string;
   declare notificationType: 'WHATSAPP' | 'EMAIL' | 'SMS';
   declare isVerified: boolean;
+  declare Medications: Medication[];
+  declare Reminders: Reminder[];
 }
 
 User.init(

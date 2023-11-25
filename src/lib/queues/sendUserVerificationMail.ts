@@ -1,6 +1,7 @@
 import Queue from 'bull';
 import emailService from '../emailService';
 import env from '../../config/env';
+import User from '../../models/User';
 
 const sendEmailQueue = new Queue('User Verification', {
   redis: env.REDIS_URL,
@@ -19,7 +20,7 @@ sendEmailQueue.on('error', (error) => {
 });
 
 sendEmailQueue.process(async (job, done) => {
-  const { user } = job.data;
+  const { user } = job.data as { user: User };
   console.log(`Sending User Verification mail to ${user.email}`);
   try {
     await emailService.sendVerificationMail(user);

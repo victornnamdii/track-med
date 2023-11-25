@@ -5,6 +5,7 @@ import { sq } from '../config/db';
 import BodyError from '../lib/BodyError';
 import User from './User';
 import { sortTimes } from '../lib/handlers';
+import Reminder from './Reminder';
 
 type drugInfo = {
   drugName: string;
@@ -51,6 +52,8 @@ class Medication extends Model {
   declare UserId: string;
   declare name: string;
   declare drugInfo: drugInfo | string;
+  declare Reminders: Reminder[];
+  declare User: User;
 }
 
 Medication.init(
@@ -75,8 +78,7 @@ Medication.init(
       type: DataTypes.JSON,
       allowNull: false,
       validate: {
-        isCorrectSchema(value: drugInfo) {
-          const drugInfo = value;
+        isCorrectSchema(drugInfo: drugInfo) {
           if (!Array.isArray(drugInfo)) {
             throw new BodyError('Drug information should be a list');
           }
@@ -147,6 +149,7 @@ Medication.init(
                 );
               }
               let wrongValue = false;
+
               drug.customTimes.forEach((value) => {
                 if (!checkTime(value)) {
                   wrongValue = true;
@@ -157,6 +160,21 @@ Medication.init(
                   `Values for ${drug.drugName}'s custom times should be in the format HH:MM`
                 );
               }
+            }
+
+            const drugNames = drugInfo.filter((drugInside) => {
+              return drugInside
+                .drugName
+                .toLowerCase()
+                .trim() === drug.drugName.toLowerCase().trim();
+            });
+
+            if (drugNames.length > 1) {
+              throw new BodyError(
+                `${drug.drugName[0]
+                  .toUpperCase()}${drug.drugName
+                  .slice(1)} is repeated in your drug information.`
+              );
             }
           });
         },
@@ -186,18 +204,35 @@ Medication.init(
 
         if (instance.drugInfo) {
           const drugInfo = instance.drugInfo as drugInfo;
-          drugInfo.forEach((info) => {
-            if (info.times === 'default') {
-              info.times =
+          drugInfo.forEach((drug) => {
+            if (drug.times === 'default') {
+              drug.times =
                 standardizedDosage[
-                  info.frequency as keyof typeof standardizedDosage
+                  drug.frequency as keyof typeof standardizedDosage
                 ];
-            } else if (info.times === 'custom') {
-              const sortedTimes = sortTimes(info.customTimes as string[]);
+            } else if (drug.times === 'custom') {
+              const sortedTimes = sortTimes(drug.customTimes as string[]);
               const uniqueTimes = new Set(sortedTimes);
-              info.times = Array.from(uniqueTimes);
+              drug.times = Array.from(uniqueTimes);
             }
-            delete info.customTimes;
+
+            if (drug.drugName) {
+              const words = drug.drugName.trim().split(' ');
+              let name = '';
+              
+              words.forEach((word) => {
+                if (name.length > 0) {
+                  name += ' ';
+                }
+                name += `${word[0]
+                  .toUpperCase()}${word
+                  .slice(1)}`;
+              });
+
+              drug.drugName = name;
+            }
+
+            delete drug.customTimes;
           });
 
           instance.drugInfo = drugInfo;

@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { BaseError, UniqueConstraintError, ValidationError } from 'sequelize';
 import BodyError from './BodyError';
+import Reminder from '../models/Reminder';
 
 const hashString = async (string: string): Promise<string> => {
   if (string === undefined) {
@@ -67,4 +68,52 @@ const sortTimes = (times: string[]) => {
   return sortedTimes;
 };
 
-export { hashString, sequelizeErrorHandler, addSuffix, sortTimes };
+const groupRemindersByName = (reminders: Reminder[]) => {
+  const groupedReminders: { [keys: string]: Reminder[] } = {};
+  reminders.forEach((reminder) => {
+    if (groupedReminders[reminder.drugName] === undefined) {
+      groupedReminders[reminder.drugName] = [reminder];
+    } else {
+      groupedReminders[reminder.drugName].push(reminder);
+    }
+  });
+  return groupedReminders;
+};
+
+const generateReport = (groupedReminders: { [keys: string]: Reminder[] }) => {
+  const report: {
+    [keys: string]: {
+      [keys: string]: [string, boolean][];
+    };
+  } = {};
+
+  const drugs = Object.keys(groupedReminders);
+  drugs.forEach((drug) => {
+    report[drug] = {};
+    const reminders = groupedReminders[drug];
+    reminders.forEach((reminder) => {
+      const dateAndStatuses = Object.entries(reminder.status);
+      dateAndStatuses.forEach((dateAndStatus) => {
+        if (report[drug][dateAndStatus[0]] === undefined) {
+          report[drug][dateAndStatus[0]] = [[reminder.time, dateAndStatus[1]]];
+        } else {
+          report[drug][dateAndStatus[0]].push([
+            reminder.time,
+            dateAndStatus[1],
+          ]);
+        }
+      });
+    });
+  });
+
+  return report;
+};
+
+export {
+  hashString,
+  sequelizeErrorHandler,
+  addSuffix,
+  sortTimes,
+  groupRemindersByName,
+  generateReport,
+};

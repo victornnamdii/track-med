@@ -7,6 +7,7 @@ const medicationRouter = Router();
 medicationRouter.post('/', requireAuth, MedicationController.addMedication);
 medicationRouter.get('/', requireAuth, MedicationController.getAllMedications);
 medicationRouter.get('/:MedicationId', requireAuth, MedicationController.getAMedication);
+medicationRouter.get('/:MedicationId/report', requireAuth, MedicationController.getMedicationReport);
 medicationRouter.patch('/:MedicationId', requireAuth, MedicationController.updateMedication);
 medicationRouter.delete('/:MedicationId', requireAuth, MedicationController.deleteMedication);
 

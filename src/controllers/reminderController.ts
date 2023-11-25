@@ -18,23 +18,26 @@ class ReminderController {
 
       const reminder = await Reminder.findByPk(ReminderId);
       const status = reminder?.status as { [keys: string]: boolean };
+      const statusValue = status[date as string];
 
       if (
         reminder === null ||
         reminder.token !== token ||
-        status[date as string] === undefined
+        statusValue === undefined
       ) {
         return res.status(400).json({ error: 'Invalid reminder link' });
       }
 
-      status[date as string] = true;
+      if (statusValue === false) {
+        status[date as string] = true;
 
-      await Reminder.update(
-        { status },
-        {
-          where: { id: ReminderId }
-        }
-      );
+        await Reminder.update(
+          { status },
+          {
+            where: { id: ReminderId }
+          }
+        );
+      }
 
       res.status(200).json({ message: 'Thank you for taking your drugs!' });
     } catch (error) {

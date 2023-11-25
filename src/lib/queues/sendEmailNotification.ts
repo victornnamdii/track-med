@@ -20,7 +20,7 @@ sendEmailNotificationQueue.on('error', (error) => {
 });
 
 sendEmailNotificationQueue.process(async (job, done) => {
-  const { reminder, date } = job.data;
+  const { reminder, date } = job.data as { reminder: Reminder, date: string };
   console.log(`Sending Email Notification to ${reminder.User?.email}`);
   try {
     const status = reminder.status;

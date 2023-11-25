@@ -20,7 +20,7 @@ sendWhatsappNotificationQueue.on('error', (error) => {
 });
 
 sendWhatsappNotificationQueue.process(async (job, done) => {
-  const { reminder, date } = job.data;
+  const { reminder, date } = job.data as { reminder: Reminder, date: string };
   console.log(`Sending Whatsapp Notification to ${reminder.User?.phoneNumber}`);
   try {
     const status = reminder.status;
