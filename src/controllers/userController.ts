@@ -94,13 +94,14 @@ class UserController {
   static async verifyUser(req: Request, res: Response, next: NextFunction) {
     try {
 
-      const { UserId, uniqueString } = req.params;
+      const { UserId } = req.params;
+      const { code } = req.body;
 
       const hashedString = await redisClient.get(`trackmed_verify_${UserId}`);
 
       if (hashedString !== null && isUUID(UserId, 4)) {
-        const correctUrl = await bcrypt.compare(uniqueString, hashedString);
-        if (correctUrl) {
+        const correctCode = await bcrypt.compare(code, hashedString);
+        if (correctCode) {
           await User.update({ isVerified: true }, { where: { id: UserId } });
           redisClient.del(`trackmed_verify_${UserId}`)
             .catch((err) => console.log(err));

@@ -10,6 +10,6 @@ userRouter.get('/logout', requireAuth, UserController.logOut);
 userRouter.get('/user', returnUser);
 userRouter.delete('/user', requireAuth, UserController.deleteUser);
 userRouter.patch('/user', requireAuth, UserController.updateUser);
-userRouter.get('/verify/:UserId/:uniqueString', UserController.verifyUser);
+userRouter.post('/verify/:UserId', UserController.verifyUser);
 
 export default userRouter;

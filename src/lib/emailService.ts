@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 import env from '../config/env';
-import { v4 } from 'uuid';
 import User from '../models/User';
 import { hashString } from './handlers';
 import redisClient from '../config/redis';
@@ -23,17 +22,17 @@ class EmailService {
   }
 
   async sendVerificationMail(user: User) {
-    const prefixUrl = env.HOST;
-    const uniqueString = v4() + user.id;
+    const randomNumber1 = Math.floor(Math.random() * 10).toString();
+    const randomNumber4 = Math.floor(Math.random() * 100000).toString().padStart(6, randomNumber1);
 
     const mailOptions = {
       from: 'TRACK MED',
       to: user.email,
-      subject: 'Please verify your Email',
-      html: `<p>Please click the link below to verify your email.</p><p>The link <b>expires in 6 hours</b>.</p><p>Click <a href=${`${prefixUrl}/auth/verify/${user.id}/${uniqueString}`}>here</a> to verify</p>`,
+      subject: `Your Track Med OTP is ${randomNumber4}`,
+      html: `<p>Hey ${user.firstName}! Use the code below to verify your email</p><p>The code <b>expires in 6 hours</b>.</p><p><b>${randomNumber4}</b></p>`,
     };
 
-    const hashedString = await hashString(uniqueString);
+    const hashedString = await hashString(randomNumber4);
     await redisClient.set(
       `trackmed_verify_${user.id}`,
       hashedString,

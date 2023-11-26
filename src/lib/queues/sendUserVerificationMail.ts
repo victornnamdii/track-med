@@ -24,6 +24,7 @@ sendEmailQueue.process(async (job, done) => {
   console.log(`Sending User Verification mail to ${user.email}`);
   try {
     await emailService.sendVerificationMail(user);
+    console.log(`Sent User Verification mail to ${user.email}`);
   } catch (error) {
     console.log(error);
     // @ts-expect-error: Skip
