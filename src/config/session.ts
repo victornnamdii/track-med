@@ -18,7 +18,8 @@ const sessionConfig = session({
   cookie: {
     httpOnly: true,
     maxAge: 1 * 24 * 60 * 60 * 1000,
-    secure: false,
+    secure: env.NODE_ENV !== 'dev',
+    sameSite: 'none'
   },
   proxy: true,
 });
