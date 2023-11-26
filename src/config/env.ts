@@ -19,6 +19,7 @@ const env = {
   HOST: process.env.HOST as string,
   WHAPI_TOKEN: process.env.WHAPI_TOKEN as string,
   REDIS_URL: process.env.REDIS_URL as string,
+  CLIENT_URL: process.env.CLIENT_URL as string,
 };
 
 export default env;

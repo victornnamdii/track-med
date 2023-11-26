@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import { connectToDB } from './config/db';
@@ -21,6 +22,13 @@ app.use(cookieParser());
 app.use(sessionConfig);
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    env.CLIENT_URL
+  ],
+  credentials: true,
+}));
 
 connectToDB().then(() => {
   app.listen(port, () => {
