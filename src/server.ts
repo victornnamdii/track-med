@@ -16,6 +16,7 @@ import reminderRouter from './routers/reminderRouter';
 const app = express();
 const port = env.PORT;
 
+app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(express.json());
 app.use(cookieParser());
@@ -38,7 +39,7 @@ connectToDB().then(() => {
 });
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Welcome to Track Med\'s API');
+  res.send(`Welcome to Track Med's API ${req.secure} ${req.protocol}`);
 });
 
 app.use('/auth', userRouter);

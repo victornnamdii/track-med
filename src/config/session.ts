@@ -19,7 +19,8 @@ const sessionConfig = session({
     httpOnly: true,
     maxAge: 1 * 24 * 60 * 60 * 1000,
     secure: false,
-  }
+  },
+  proxy: true,
 });
 
 export default sessionConfig;
