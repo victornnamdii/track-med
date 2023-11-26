@@ -23,7 +23,7 @@ class EmailService {
 
   async sendVerificationMail(user: User) {
     const randomNumber1 = Math.floor(Math.random() * 10).toString();
-    const randomNumber4 = Math.floor(Math.random() * 100000).toString().padStart(6, randomNumber1);
+    const randomNumber4 = Math.floor(Math.random() * 10000).toString().padStart(5, randomNumber1);
 
     const mailOptions = {
       from: 'TRACK MED',
@@ -32,7 +32,7 @@ class EmailService {
       html: `<p>Hey ${user.firstName}! Use the code below to verify your email</p><p>The code <b>expires in 6 hours</b>.</p><p><b>${randomNumber4}</b></p>`,
     };
 
-    const hashedString = await hashString(randomNumber4);
+    const hashedString = await hashString(randomNumber4, 'default');
     await redisClient.set(
       `trackmed_verify_${user.id}`,
       hashedString,

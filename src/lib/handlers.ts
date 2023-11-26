@@ -3,14 +3,14 @@ import { BaseError, UniqueConstraintError, ValidationError } from 'sequelize';
 import BodyError from './BodyError';
 import Reminder from '../models/Reminder';
 
-const hashString = async (string: string): Promise<string> => {
+const hashString = async (string: string, mode: 'signup' | 'default'): Promise<string> => {
   if (string === undefined) {
     throw new BodyError('Please enter a password');
   }
   if (typeof string !== 'string') {
     throw new BodyError('Password should be a string');
   }
-  if (string.length < 6) {
+  if (string.length < 6 && mode === 'signup') {
     throw new BodyError('Password should be at least 6 characters');
   }
   const salt = await bcrypt.genSalt();

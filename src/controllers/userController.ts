@@ -29,7 +29,7 @@ class UserController {
         lastName,
         phoneNumber,
         notificationType,
-        password: await hashString(password),
+        password: await hashString(password, 'signup'),
       });
 
       sendEmailQueue.add({ user });
@@ -73,7 +73,7 @@ class UserController {
         lastName,
         phoneNumber,
         notificationType,
-        password: newPassword ? await hashString(newPassword) : undefined,
+        password: newPassword ? await hashString(newPassword, 'signup') : undefined,
       });
 
       if (notificationType) {
