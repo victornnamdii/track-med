@@ -18,7 +18,7 @@ const requireAuth: RequestHandler = async (req, res, next) => {
         // @ts-ignore
         if (!user || user.token !== token) {
           return res.status(401).json({
-            error: 'You are not authorized to access this resource'
+            error: 'You are not authorized to access this resource',
           });
         } else {
           // @ts-ignore
@@ -41,10 +41,18 @@ const returnUser: RequestHandler = (req, res, next) => {
         if (err) {
           return next(err);
         }
-        // @ts-ignore
-        if (!user || user.token !== token) {
+
+        const Authorization = req.headers['authorization'];
+        const token = Authorization?.slice(7);
+        
+        if (
+          !user ||
+          !Authorization?.startsWith('Bearer ') ||
+          // @ts-ignore
+          user.token !== token
+        ) {
           return res.status(200).json({
-            user: null
+            user: null,
           });
         } else {
           // @ts-ignore
@@ -57,6 +65,5 @@ const returnUser: RequestHandler = (req, res, next) => {
     next(error);
   }
 };
-
 
 export { requireAuth, returnUser };
