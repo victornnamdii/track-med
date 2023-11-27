@@ -13,10 +13,7 @@ const requireAuth: RequestHandler = async (req, res, next) => {
           return next(err);
         }
 
-        const Authorization = req.headers['authorization'];
-        const token = Authorization?.slice(7);
-        // @ts-ignore
-        if (!user || user.token !== token) {
+        if (!user) {
           return res.status(401).json({
             error: 'You are not authorized to access this resource',
           });
@@ -41,22 +38,16 @@ const returnUser: RequestHandler = (req, res, next) => {
         if (err) {
           return next(err);
         }
-
-        const Authorization = req.headers['authorization'];
-        const token = Authorization?.slice(7);
         
-        if (
-          !user ||
-          !Authorization?.startsWith('Bearer ') ||
-          // @ts-ignore
-          user.token !== token
-        ) {
+        if (!user) {
           return res.status(200).json({
             user: null,
           });
         } else {
           // @ts-ignore
           user.token = undefined;
+          // @ts-ignore
+          user.password = undefined;
           return res.status(200).json({ user });
         }
       }
