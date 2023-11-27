@@ -1,7 +1,8 @@
 import User from '../models/User';
 import { Medication, drugInfo } from '../models/Medication';
 import Reminder from '../models/Reminder';
-import { addSuffix } from './handlers';
+import { addSuffix, changeToUTC } from './handlers';
+import env from '../config/env';
 
 class ReminderClient {
   static async createReminders(medication: Medication) {
@@ -21,13 +22,24 @@ class ReminderClient {
           const endDate = new Date(info.endDate);
           endDate.setDate(endDate.getDate() + 1);
 
+          const UTCTimeAndDate = changeToUTC(
+            time,
+            info.startDate,
+            info.endDate
+          );
+
           await Reminder.create({
             UserId: medication.UserId,
             userNotificationType: user?.notificationType,
             MedicationId: medication.id,
-            startDate: new Date(info.startDate),
-            time,
-            endDate,
+            startDate: env.NODE_ENV === 'dev'
+              ? new Date(info.startDate) :
+              UTCTimeAndDate.startDate,
+            time: env.NODE_ENV === 'dev'
+              ? time : UTCTimeAndDate.time,
+            endDate: env.NODE_ENV === 'dev'
+              ? endDate :
+              UTCTimeAndDate.endDate,
             message,
             drugName: info.drugName
           });

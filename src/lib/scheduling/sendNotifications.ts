@@ -4,7 +4,7 @@ import Reminder from '../../models/Reminder';
 import { Medication } from '../../models/Medication';
 import User from '../../models/User';
 import sendEmailNotificationQueue from '../queues/sendEmailNotification';
-import sendWhatsappNotificationQueue from '../queues/sendEmailNotification copy';
+import sendWhatsappNotificationQueue from '../queues/sendWhatsAppNotification';
 
 const sendNotifications = new CronJob('* * * * *', async () => {
   try {
@@ -18,11 +18,15 @@ const sendNotifications = new CronJob('* * * * *', async () => {
       .padStart(2, '0')}`;
     
     const date = `${jobStartTime
-      .getFullYear()}-${jobStartTime
-      .getMonth() + 1}-${jobStartTime
-      .getDate()}`;
+      .getFullYear()}-${(jobStartTime
+      .getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}-${jobStartTime
+      .getDate()
+      .toString()
+      .padStart(2, '0')}`;
     
-    console.log(time);
+    console.log(date, time);
 
     const ValidReminders = await Reminder.findAll({
       where: {

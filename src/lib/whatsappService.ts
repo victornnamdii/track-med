@@ -24,7 +24,7 @@ class WhatsappClient {
         .toUpperCase()}💊 ‼️*\n\n${
         message}\n\nIf you have taken them, Open the link below:\n\n${link}`
     };
-    this.client.post(`/text?token=${env.WHAPI_TOKEN}`, data);
+    await this.client.post(`/text?token=${env.WHAPI_TOKEN}`, data);
   }
 }
 

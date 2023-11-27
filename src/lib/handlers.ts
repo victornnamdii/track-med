@@ -109,6 +109,29 @@ const generateReport = (groupedReminders: { [keys: string]: Reminder[] }) => {
   return report;
 };
 
+const changeToUTC = (time: string, startDate: string, endDate: string) => {
+  const [hour, minute] = time.split(':');
+  let newHour = Number(hour) - 1;
+  const newStartDate = new Date(startDate);
+  const newEndDate = new Date(endDate);
+
+  if (newHour < 0) {
+    newHour += 24;
+    newStartDate.setDate(newStartDate.getDate() - 1);
+  } else {
+    newEndDate.setDate(newEndDate.getDate() + 1);
+  }
+
+  const newDateAndTime = {
+    time: `${newHour
+      .toString()
+      .padStart(2, '0')}:${minute}`,
+    startDate: newStartDate,
+    endDate: newEndDate,
+  };
+  return newDateAndTime;
+};
+
 export {
   hashString,
   sequelizeErrorHandler,
@@ -116,4 +139,5 @@ export {
   sortTimes,
   groupRemindersByName,
   generateReport,
+  changeToUTC
 };
