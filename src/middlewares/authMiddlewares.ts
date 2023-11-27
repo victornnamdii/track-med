@@ -1,29 +1,62 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { type RequestHandler } from 'express';
+import passport from 'passport';
+import User from '../models/User';
 
 const requireAuth: RequestHandler = async (req, res, next) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({
-      error: 'You are not authorized to access this resource'
-    });
+  try {
+    passport.authenticate(
+      'jwt',
+      { session: false },
+      (err: Error, user: User) => {
+        if (err) {
+          return next(err);
+        }
+
+        const Authorization = req.headers['authorization'];
+        const token = Authorization?.slice(7);
+        // @ts-ignore
+        if (!user || user.token !== token) {
+          return res.status(401).json({
+            error: 'You are not authorized to access this resource'
+          });
+        } else {
+          // @ts-ignore
+          req.user = user;
+          return next();
+        }
+      }
+    )(req, res, next);
+  } catch (error) {
+    next(error);
   }
-  next();
 };
 
-const requireNoAuth: RequestHandler = async (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return res.status(400).json({
-      error: 'You are already logged in'
-    });
+const returnUser: RequestHandler = (req, res, next) => {
+  try {
+    passport.authenticate(
+      'jwt',
+      { session: false },
+      (err: Error, user: User) => {
+        if (err) {
+          return next(err);
+        }
+        // @ts-ignore
+        if (!user || user.token !== token) {
+          return res.status(200).json({
+            user: null
+          });
+        } else {
+          // @ts-ignore
+          user.token = undefined;
+          return res.status(200).json({ user });
+        }
+      }
+    )(req, res, next);
+  } catch (error) {
+    next(error);
   }
-  next();
-};
-
-const returnUser: RequestHandler = (req, res) => {
-  const user = req.user ?? null;
-  // @ts-expect-error: "Express User"
-  delete user?.password;
-  return res.status(200).json({ user });
 };
 
 
-export { requireAuth, requireNoAuth, returnUser };
+export { requireAuth, returnUser };

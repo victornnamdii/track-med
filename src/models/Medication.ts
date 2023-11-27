@@ -73,6 +73,7 @@ Medication.init(
         model: User,
         key: 'id',
       },
+      allowNull: false
     },
     drugInfo: {
       type: DataTypes.JSON,

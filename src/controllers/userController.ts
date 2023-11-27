@@ -2,6 +2,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { SessionData } from 'express-session';
 import passport from 'passport';
+import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import isUUID from 'validator/lib/isUUID';
 import User from '../models/User';
@@ -10,6 +11,7 @@ import redisClient from '../config/redis';
 import BodyError from '../lib/BodyError';
 import sendEmailQueue from '../lib/queues/sendUserVerificationMail';
 import ReminderClient from '../lib/ReminderClient';
+import env from '../config/env';
 
 class UserController {
   static async addUser(req: Request, res: Response, next: NextFunction) {
@@ -132,14 +134,26 @@ class UserController {
             return res.status(400).json({ error: info.message });
           }
 
-          req.logIn(user, async (err) => {
+          req.logIn(user, { session: false }, async (err) => {
             if (err) {
               return next(err);
             }
 
+            // @ts-ignore
+            const token = jwt.sign({ user: { id: user.id } }, env.SECRET_KEY, {
+              expiresIn: '24h'
+            });
+            const editedUser = JSON.parse(JSON.stringify(user));
+            editedUser.token = token;
+            await redisClient.set(
+              // @ts-ignore
+              `trackmed_user_${user.id}`,
+              JSON.stringify(editedUser),
+              1 * 24 * 60 * 60
+            );
             res
               .status(200)
-              .json({ message: 'You have been sucessfully logged in' });
+              .json({ message: 'You have been sucessfully logged in', token });
           });
         }
       )(req, res, next);
@@ -150,14 +164,10 @@ class UserController {
 
   static async logOut(req: Request, res: Response, next: NextFunction) {
     try {
-      req.logOut((err) => {
+      // @ts-ignore
+      await redisClient.del(`trackmed_user_${req.user?.id}`);
 
-        if (err) {
-          return next(err);
-        }
-
-        res.status(200).json({ message: 'You have been successfully logged out' });
-      });
+      res.status(200).json({ message: 'You have been successfully logged out' });
     } catch (error) {
       next(error);
     }
