@@ -21,25 +21,34 @@ sendEmailNotificationQueue.on('error', (error) => {
 
 sendEmailNotificationQueue.process(async (job, done) => {
   const { reminder, date } = job.data as { reminder: Reminder, date: string };
-  console.log(`Sending Email Notification to ${reminder.User?.email}`);
   try {
+    const originalReminder = reminder.snoozed === true
+      ? await Reminder.findOne({ where: { id: reminder.ReminderId } }) as Reminder
+      : reminder;
     const status = reminder.status;
-    status[date] = false;
-    await Reminder.update(
-      {
-        status
-      },
-      {
-        where: { id: reminder.id }
-      }
-    );
-    await emailService.sendReminderMail(
-      reminder.User.email,
-      reminder.Medication.name,
-      reminder.message,
-      `${env.HOST}/reminders/complete/${reminder.id}?token=${reminder.token}&date=${date}`
-    );
-    console.log(`Sent Email Notification to ${reminder.User?.email}`);
+
+    if (status[date] !== true) {
+      console.log(`Sending Email Notification to ${reminder.User?.email}`);
+      status[date] = false;
+      await Reminder.update(
+        {
+          status
+        },
+        {
+          where: { id: reminder.id }
+        }
+      );
+      await emailService.sendReminderMail(
+        reminder.User.email,
+        reminder.Medication.name,
+        reminder.message,
+        `${env.HOST}/reminders/${originalReminder
+          .id}/complete?token=${originalReminder
+          .token}&date=${date}`,
+        `${env.HOST}/reminders/${reminder.id}/snooze?token=${reminder.token}&date=${date}`
+      );
+      console.log(`Sent Email Notification to ${reminder.User?.email}`);
+    }
   } catch (error) {
     console.log(error);
     // @ts-expect-error: Skip
