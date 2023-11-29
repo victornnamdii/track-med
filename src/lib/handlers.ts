@@ -103,11 +103,57 @@ const changeToUTC = (time: string, startDate: string, endDate: string) => {
   return newDateAndTime;
 };
 
+const changeToLocalTime = (reminders: Reminder[]) => {
+
+  reminders.forEach((reminder) => {
+    const time = reminder.time;
+    const [hour, minute] = time.split(':');
+    let newHour = Number(hour) + 1;
+
+    if (newHour > 23) {
+      newHour -= 24;
+
+      const status = reminder.status;
+      const oldDates = Object.keys(status);
+      const oldAndNewDates: [string, string][] = [];
+
+      oldDates.forEach((oldDate) => {
+        const newDateConstructor = new Date(oldDate);
+        newDateConstructor.setDate(
+          newDateConstructor.getDate() + 1
+        );
+
+        const newDate = `${newDateConstructor
+          .getFullYear()}-${(newDateConstructor
+          .getMonth() + 1)
+          .toString()
+          .padStart(2, '0')}-${newDateConstructor
+          .getDate()
+          .toString()
+          .padStart(2, '0')}`;
+        
+        oldAndNewDates.push([oldDate, newDate]);
+      });
+
+      oldAndNewDates.forEach((oldAndNewDate) => {
+        const statusValue = status[oldAndNewDate[0]];
+        delete reminder.status[oldAndNewDate[0]];
+        reminder.status[oldAndNewDate[1]] = statusValue;
+      });
+    }
+
+    reminder.time = `${newHour
+      .toString()
+      .padStart(2, '0')}:${minute}`;
+  });
+};
+
 export {
   hashString,
   sequelizeErrorHandler,
   addSuffix,
   sortTimes,
   groupRemindersByName,
-  changeToUTC
+  changeToUTC,
+  changeToLocalTime,
 };

@@ -1,7 +1,12 @@
 import User from '../models/User';
 import { Medication, drugInfo } from '../models/Medication';
 import Reminder from '../models/Reminder';
-import { addSuffix, changeToUTC, groupRemindersByName } from './handlers';
+import {
+  addSuffix,
+  changeToLocalTime,
+  changeToUTC,
+  groupRemindersByName
+} from './handlers';
 import env from '../config/env';
 
 class ReminderClient {
@@ -80,6 +85,9 @@ class ReminderClient {
       return [true, 'Start date/time for drugs hasn\'t reached'];
     }
 
+    if (env.NODE_ENV !== 'dev') {
+      changeToLocalTime(validReminders);
+    }
     const groupedReminders =  groupRemindersByName(validReminders);
 
     const report: {
@@ -104,6 +112,11 @@ class ReminderClient {
             ]);
           }
         });
+      });
+
+      const drugDates = Object.keys(report[drug]);
+      drugDates.forEach((date) => {
+        report[drug][date].sort((a, b) => a[0] > b[0] ? 1 : -1);
       });
     });
 
