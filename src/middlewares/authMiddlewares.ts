@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { type RequestHandler } from 'express';
+import { type RequestHandler, Express } from 'express';
 import passport from 'passport';
 import User from '../models/User';
 
@@ -8,7 +8,7 @@ const requireAuth: RequestHandler = async (req, res, next) => {
     passport.authenticate(
       'jwt',
       { session: false },
-      (err: Error, user: User) => {
+      (err: Error, user: Express.User) => {
         if (err) {
           return next(err);
         }
@@ -18,6 +18,10 @@ const requireAuth: RequestHandler = async (req, res, next) => {
             error: 'You are not authorized to access this resource',
           });
         } else {
+          const Authorization = req.headers['authorization'];
+          const tokenSring = Authorization?.slice(7);
+          // @ts-ignore
+          user.token = tokenSring;
           // @ts-ignore
           req.user = user;
           return next();

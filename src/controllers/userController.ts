@@ -81,7 +81,11 @@ class UserController {
         await ReminderClient.changeNotificationType(user.id, user.notificationType);
       }
 
-      await redisClient.update(`trackmed_user_${user.id}`, JSON.stringify(user));
+      await redisClient.update(
+        //@ts-ignore
+        `trackmed_user_${user.id}_${user.token}`, 
+        JSON.stringify(user)
+      );
 
       res.status(201).json({
         message: 'User successfully updated',
