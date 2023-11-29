@@ -4,7 +4,6 @@ import isUUID from 'validator/lib/isUUID';
 import { Medication } from '../models/Medication';
 import ReminderClient from '../lib/ReminderClient';
 import Reminder from '../models/Reminder';
-import { groupRemindersByName, generateReport } from '../lib/handlers';
 import User from '../models/User';
 
 class MedicationController {
@@ -89,26 +88,19 @@ class MedicationController {
         return res.status(404).json({ error: 'Medication not found' });
       }
 
-      const medicationReminders = medication.Reminders;
-      const validReminders = medicationReminders.filter((reminder) => {
-        return Object.keys(reminder.status).length > 0;
-      });
-
-      if (validReminders.length === 0) {
-        return res.status(400).json({
-          error: 'Start date/time for drugs hasn\'t reached'
-        });
+      const report = ReminderClient.generateReport(medication);
+      if (report[0] === true) {
+        return res.status(400).json({ error: report[1] });
       }
-      const groupedReminders =  groupRemindersByName(validReminders);
-      const report = generateReport(groupedReminders);
 
       const user =  medication.User;
+
       // @ts-expect-error: "Security"
       user.password = undefined;
 
       res.status(200).json({
         message: `Report for ${medication.name} successfully generated`,
-        report,
+        report: report[1],
         user
       });
     } catch (error) {

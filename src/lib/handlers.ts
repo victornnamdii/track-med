@@ -80,35 +80,6 @@ const groupRemindersByName = (reminders: Reminder[]) => {
   return groupedReminders;
 };
 
-const generateReport = (groupedReminders: { [keys: string]: Reminder[] }) => {
-  const report: {
-    [keys: string]: {
-      [keys: string]: [string, boolean][];
-    };
-  } = {};
-
-  const drugs = Object.keys(groupedReminders);
-  drugs.forEach((drug) => {
-    report[drug] = {};
-    const reminders = groupedReminders[drug];
-    reminders.forEach((reminder) => {
-      const dateAndStatuses = Object.entries(reminder.status);
-      dateAndStatuses.forEach((dateAndStatus) => {
-        if (report[drug][dateAndStatus[0]] === undefined) {
-          report[drug][dateAndStatus[0]] = [[reminder.time, dateAndStatus[1]]];
-        } else {
-          report[drug][dateAndStatus[0]].push([
-            reminder.time,
-            dateAndStatus[1],
-          ]);
-        }
-      });
-    });
-  });
-
-  return report;
-};
-
 const changeToUTC = (time: string, startDate: string, endDate: string) => {
   const [hour, minute] = time.split(':');
   let newHour = Number(hour) - 1;
@@ -138,6 +109,5 @@ export {
   addSuffix,
   sortTimes,
   groupRemindersByName,
-  generateReport,
   changeToUTC
 };
