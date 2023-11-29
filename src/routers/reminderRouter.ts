@@ -3,6 +3,7 @@ import ReminderController from '../controllers/reminderController';
 
 const reminderRouter = Router();
 
-reminderRouter.get('/complete/:ReminderId', ReminderController.markReminderComplete);
+reminderRouter.get('/:ReminderId/complete', ReminderController.markReminderComplete);
+reminderRouter.get('/:ReminderId/snooze', ReminderController.snoozeReminder);
 
 export default reminderRouter;

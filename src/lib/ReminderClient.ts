@@ -5,9 +5,12 @@ import {
   addSuffix,
   changeToLocalTime,
   changeToUTC,
+  convertDateAndTimeStringToLocal,
+  createNewToken,
   groupRemindersByName
 } from './handlers';
 import env from '../config/env';
+import BodyError from './BodyError';
 
 class ReminderClient {
   static async createReminders(medication: Medication) {
@@ -88,11 +91,11 @@ class ReminderClient {
     if (env.NODE_ENV !== 'dev') {
       changeToLocalTime(validReminders);
     }
-    const groupedReminders =  groupRemindersByName(validReminders);
+    const groupedReminders = groupRemindersByName(validReminders);
 
     const report: {
       [keys: string]: {
-        [keys: string]: [string, boolean][];
+        [keys: string]: [string, boolean | string][];
       };
     } = {};
   
@@ -121,6 +124,105 @@ class ReminderClient {
     });
 
     return [false, report];
+  }
+
+  static async updateStatus(
+    reminderId: string,
+    date: string,
+    value: boolean | string
+  ) {
+    const reminder = await Reminder.findByPk(reminderId);
+    if (reminder === null) {
+      throw new BodyError('Reminder not found');
+    }
+
+    const { status } = reminder;
+    if (status[date] !== value) {
+      status[date] = value;
+
+      await Reminder.update(
+        {
+          status
+        },
+        {
+          where: { id: reminder.id }
+        }
+      );
+    }
+  }
+
+  static async snoozeReminder(
+    reminder: Reminder,
+    date: string,
+  ) {
+    const [hour, minute] = reminder.time.split(':');
+
+    let newMinute = Number(minute) + 10;
+    let newHour = Number(hour);
+
+    const startDate = new Date(date as string);
+
+    if (newMinute > 59) {
+      newMinute -= 60;
+      newHour += 1;
+      const newDay = env.NODE_ENV === 'dev'
+        ? newHour > 23 : newHour > 22; // CHECK THIS LATER TIMEZONE STUFF
+
+      if (newDay) {
+        throw new BodyError(
+          'You can not snooze a medication reminder into a new day'
+        );
+      }
+    }
+
+    const time = `${newHour
+      .toString()
+      .padStart(2, '0')}:${newMinute
+      .toString()
+      .padStart(2, '0')}`;
+
+    const endDate = new Date(date);
+    endDate.setDate(endDate.getDate() + 1);
+
+    const localDateAndTime = env.NODE_ENV === 'dev'
+      ? [date, time]
+      : convertDateAndTimeStringToLocal(date, time);
+
+    if (reminder.snoozed === false) {
+      await Reminder.create({
+        UserId: reminder.UserId,
+        userNotificationType: reminder.userNotificationType,
+        MedicationId: reminder.MedicationId,
+        startDate,
+        time,
+        endDate,
+        message: reminder.message,
+        drugName: reminder.drugName,
+        snoozed: true,
+        ReminderId: reminder.id
+      });
+    } else {
+      await Reminder.update(
+        {
+          startDate,
+          time,
+          endDate,
+          token: createNewToken(reminder.token),
+          status: {}
+        },
+        {
+          where: { id: reminder.id }
+        }
+      );
+    }
+
+    await ReminderClient.updateStatus(
+      reminder.snoozed === true ? reminder.ReminderId : reminder.id,
+      date,
+      `snoozed to:${localDateAndTime[0]} ${localDateAndTime[1]}`
+    );
+
+    return localDateAndTime;
   }
 }
 

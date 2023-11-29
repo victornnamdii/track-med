@@ -15,11 +15,14 @@ class Reminder extends Model {
   declare startDate: Date;
   declare time: string;
   declare endDate: Date;
-  declare status: { [keys: string]: boolean };
+  declare status: { [keys: string]: boolean | string };
   declare message: string;
   declare token: string;
   declare User: User;
   declare Medication: Medication;
+  declare snoozed: boolean;
+  declare ReminderId: string;
+  declare Reminder?: Reminder;
 }
 
 Reminder.init(
@@ -35,6 +38,7 @@ Reminder.init(
         model: User,
         key: 'id',
       },
+      allowNull: false
     },
     userNotificationType: {
       type: DataTypes.STRING,
@@ -51,6 +55,7 @@ Reminder.init(
         model: Medication,
         key: 'id',
       },
+      allowNull: false
     },
     startDate: {
       type: DataTypes.DATE,
@@ -89,7 +94,19 @@ Reminder.init(
     drugName: {
       type: DataTypes.STRING,
       allowNull: false
-    }
+    },
+    snoozed: {
+      type:DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    ReminderId: {
+      type: DataTypes.UUID,
+      references: {
+        model: Reminder,
+        key: 'id',
+      },
+    },
   },
   {
     sequelize: sq,
@@ -100,7 +117,17 @@ Reminder.init(
       {
         fields: ['endDate']
       }
-    ]
+    ],
+    hooks: {
+      beforeSave(instance) {
+        if(instance.snoozed === false && instance.ReminderId) {
+          throw new BodyError('Only snoozed reminders should be linked to another reminder');
+        }
+        if (instance.snoozed === true && !instance.ReminderId) {
+          throw new BodyError('Snoozed reminders should be linked to another reminder');
+        }
+      },
+    }
   }
 );
 
