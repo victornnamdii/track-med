@@ -1,7 +1,12 @@
 import User from '../models/User';
 import { Medication, drugInfo } from '../models/Medication';
 import Reminder from '../models/Reminder';
-import { addSuffix, changeToUTC } from './handlers';
+import {
+  addSuffix,
+  changeToLocalTime,
+  changeToUTC,
+  groupRemindersByName
+} from './handlers';
 import env from '../config/env';
 
 class ReminderClient {
@@ -68,6 +73,54 @@ class ReminderClient {
         where: { UserId }
       }
     );
+  }
+
+  static generateReport(medication: Medication) {
+    const medicationReminders = medication.Reminders;
+    const validReminders = medicationReminders.filter((reminder) => {
+      return Object.keys(reminder.status).length > 0;
+    });
+
+    if (validReminders.length === 0) {
+      return [true, 'Start date/time for drugs hasn\'t reached'];
+    }
+
+    if (env.NODE_ENV !== 'dev') {
+      changeToLocalTime(validReminders);
+    }
+    const groupedReminders =  groupRemindersByName(validReminders);
+
+    const report: {
+      [keys: string]: {
+        [keys: string]: [string, boolean][];
+      };
+    } = {};
+  
+    const drugs = Object.keys(groupedReminders);
+    drugs.forEach((drug) => {
+      report[drug] = {};
+      const reminders = groupedReminders[drug];
+      reminders.forEach((reminder) => {
+        const datesAndStatuses = Object.entries(reminder.status);
+        datesAndStatuses.forEach((dateAndStatus) => {
+          if (report[drug][dateAndStatus[0]] === undefined) {
+            report[drug][dateAndStatus[0]] = [[reminder.time, dateAndStatus[1]]];
+          } else {
+            report[drug][dateAndStatus[0]].push([
+              reminder.time,
+              dateAndStatus[1],
+            ]);
+          }
+        });
+      });
+
+      const drugDates = Object.keys(report[drug]);
+      drugDates.forEach((date) => {
+        report[drug][date].sort((a, b) => a[0] > b[0] ? 1 : -1);
+      });
+    });
+
+    return [false, report];
   }
 }
 

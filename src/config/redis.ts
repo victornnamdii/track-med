@@ -55,6 +55,35 @@ class RedisClient {
       console.log(error);
     }
   }
+
+  async deleteAllUserCache(userId: string) {
+    try {
+      await this.client.executeIsolated(async (isolatedClient) => {
+        let cursor = 1;
+        while(cursor !== 0) {
+          cursor -= 1;
+          const scanResult = await isolatedClient.scan(
+            cursor,
+            {
+              TYPE: 'string',
+              MATCH: `trackmed_user_${userId}*`,
+              COUNT: 1000000
+            }
+          );
+
+          const { keys } = scanResult;
+          if (keys.length > 0) {
+            await this.client.del(keys);
+          }
+  
+          cursor = scanResult.cursor === 0 
+            ? scanResult.cursor : scanResult.cursor + 1;
+        }
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
 
 const redisClient = new RedisClient();
