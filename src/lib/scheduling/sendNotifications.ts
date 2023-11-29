@@ -5,6 +5,7 @@ import { Medication } from '../../models/Medication';
 import User from '../../models/User';
 import sendEmailNotificationQueue from '../queues/sendEmailNotification';
 import sendWhatsappNotificationQueue from '../queues/sendWhatsAppNotification';
+import { convertDateToString } from '../handlers';
 
 const sendNotifications = new CronJob('* * * * *', async () => {
   try {
@@ -17,14 +18,7 @@ const sendNotifications = new CronJob('* * * * *', async () => {
       .toString()
       .padStart(2, '0')}`;
     
-    const date = `${jobStartTime
-      .getFullYear()}-${(jobStartTime
-      .getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}-${jobStartTime
-      .getDate()
-      .toString()
-      .padStart(2, '0')}`;
+    const date = convertDateToString(jobStartTime);
     
     console.log(date, time);
 

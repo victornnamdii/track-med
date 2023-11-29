@@ -19,3 +19,8 @@ Reminder.belongsTo(Medication, {
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
+
+Reminder.belongsTo(Reminder, {
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE',
+});

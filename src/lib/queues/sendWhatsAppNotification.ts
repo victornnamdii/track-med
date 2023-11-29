@@ -21,25 +21,34 @@ sendWhatsappNotificationQueue.on('error', (error) => {
 
 sendWhatsappNotificationQueue.process(async (job, done) => {
   const { reminder, date } = job.data as { reminder: Reminder, date: string };
-  console.log(`Sending Whatsapp Notification to ${reminder.User?.phoneNumber}`);
   try {
+    const originalReminder = reminder.snoozed === true
+      ? await Reminder.findOne({ where: { id: reminder.ReminderId } }) as Reminder
+      : reminder;
     const status = reminder.status;
-    status[date] = false;
-    await Reminder.update(
-      {
-        status
-      },
-      {
-        where: { id: reminder.id }
-      }
-    );
-    await whatsappClient.sendReminder(
-      reminder.User.phoneNumber.slice(1),
-      reminder.Medication.name,
-      reminder.message,
-      `${env.HOST}/reminders/complete/${reminder.id}?token=${reminder.token}&date=${date}`
-    );
-    console.log(`Sent Whatsapp Notification to ${reminder.User?.phoneNumber}`);
+
+    if (status[date] !== true) {
+      console.log(`Sending Whatsapp Notification to ${reminder.User?.phoneNumber}`);
+      status[date] = false;
+      await Reminder.update(
+        {
+          status
+        },
+        {
+          where: { id: reminder.id }
+        }
+      );
+      await whatsappClient.sendReminder(
+        reminder.User.phoneNumber.slice(1),
+        reminder.Medication.name,
+        reminder.message,
+        `${env.HOST}/reminders/${originalReminder
+          .id}/complete?token=${originalReminder
+          .token}&date=${date}`,
+        `${env.HOST}/reminders/${reminder.id}/snooze?token=${reminder.token}&date=${date}`
+      );
+      console.log(`Sent Whatsapp Notification to ${reminder.User?.phoneNumber}`);
+    }
   } catch (error) {
     console.log(error);
     // @ts-expect-error: Skip

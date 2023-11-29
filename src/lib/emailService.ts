@@ -45,13 +45,16 @@ class EmailService {
     email: string,
     medicationName: string,
     message: string,
-    link: string
+    link: string,
+    snoozeLink: string
   ) {
     const mailOptions = {
       from: 'TRACK MED',
       to: email,
       subject: `Reminder for ${medicationName}`,
-      html: `<p>${message}</p><p>Click <a href=${link}>here</a> if you have taken them.</p>`,
+      html: `<p>${message}</p><p>Click <a href=${
+        link}>here</a> <b>if you have taken them.</b></p><p>OR</p><p>Click <a href=${
+        snoozeLink}>here</a> to <b>snooze the reminder for 10 minutes from the time of this notification.</b></p>`,
     };
 
     await this.transporter.sendMail(mailOptions);

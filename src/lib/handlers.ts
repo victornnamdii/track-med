@@ -1,7 +1,19 @@
 import bcrypt from 'bcrypt';
 import { BaseError, UniqueConstraintError, ValidationError } from 'sequelize';
+import shortid from 'shortid';
 import BodyError from './BodyError';
 import Reminder from '../models/Reminder';
+
+const convertDateToString = (date: Date) => {
+  return `${date
+    .getFullYear()}-${(date
+    .getMonth() + 1)
+    .toString()
+    .padStart(2, '0')}-${date
+    .getDate()
+    .toString()
+    .padStart(2, '0')}`;
+};
 
 const hashString = async (string: string, mode: 'signup' | 'default'): Promise<string> => {
   if (string === undefined) {
@@ -123,14 +135,7 @@ const changeToLocalTime = (reminders: Reminder[]) => {
           newDateConstructor.getDate() + 1
         );
 
-        const newDate = `${newDateConstructor
-          .getFullYear()}-${(newDateConstructor
-          .getMonth() + 1)
-          .toString()
-          .padStart(2, '0')}-${newDateConstructor
-          .getDate()
-          .toString()
-          .padStart(2, '0')}`;
+        const newDate = convertDateToString(newDateConstructor);
         
         oldAndNewDates.push([oldDate, newDate]);
       });
@@ -148,6 +153,32 @@ const changeToLocalTime = (reminders: Reminder[]) => {
   });
 };
 
+// @ts-expect-error: "Recursive"
+const createNewToken = (oldToken: string) => {
+  const newToken = shortid.generate();
+  if (newToken === oldToken) {
+    return createNewToken(newToken);
+  } else {
+    return newToken;
+  }
+};
+
+const convertDateAndTimeStringToLocal = (date: string, time: string) => {
+  const [hour, minute] = time.split(':');
+
+  let newHour = Number(hour) + 1;
+  const newDate = new Date(date);
+
+  if (newHour > 23) {
+    newHour -= 24;
+    newDate.setDate(newDate.getDate() + 1);
+  }
+
+  return [convertDateToString(newDate), `${newHour
+    .toString()
+    .padStart(2, '0')}:${minute}`];
+};
+
 export {
   hashString,
   sequelizeErrorHandler,
@@ -156,4 +187,7 @@ export {
   groupRemindersByName,
   changeToUTC,
   changeToLocalTime,
+  convertDateToString,
+  createNewToken,
+  convertDateAndTimeStringToLocal
 };
