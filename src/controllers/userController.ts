@@ -83,7 +83,7 @@ class UserController {
 
       await redisClient.update(
         //@ts-ignore
-        `trackmed_user_${user.id}_${user.token}`, 
+        `trackmed_user_${user.id}_${req.user?.token}`, 
         JSON.stringify(user)
       );
 
