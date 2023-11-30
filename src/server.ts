@@ -1,12 +1,10 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-// import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import { connectToDB } from './config/db';
 import env from './config/env';
 import { pageNotFound, serverErrorHandler } from './middlewares/errorHandlers';
 import userRouter from './routers/userRouter';
-// import sessionConfig from './config/session';
 import './config/passport';
 import startScheduledJobs from './lib/scheduling';
 import medicationRouter from './routers/medicationRouter';
@@ -19,10 +17,7 @@ const port = env.PORT;
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 app.use(express.json());
-// app.use(cookieParser());
-// app.use(sessionConfig);
 app.use(passport.initialize());
-// app.use(passport.session());
 app.use(cors({
   origin: [
     'http://localhost:3000',

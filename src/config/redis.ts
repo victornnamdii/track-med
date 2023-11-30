@@ -1,5 +1,6 @@
 import { createClient } from 'redis';
 import env from './env';
+import User from '../models/User';
 
 class RedisClient {
   client = createClient({
@@ -38,24 +39,6 @@ class RedisClient {
     await this.client.del(key);
   }
 
-  async updateUserCacheTime(key: string, user: string) {
-    try {
-      await this.client.executeIsolated(async (isolatedClient) => {
-        const multi = isolatedClient.multi();
-        await isolatedClient.watch(key);
-        multi.set(
-          key,
-          user,
-          { XX: true, EX: 1 * 24 * 60 * 60 }
-        );
-  
-        await multi.exec();
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   async deleteAllUserCache(userId: string) {
     try {
       await this.client.executeIsolated(async (isolatedClient) => {
@@ -73,11 +56,35 @@ class RedisClient {
 
           const { keys } = scanResult;
           if (keys.length > 0) {
-            await this.client.del(keys);
+            await isolatedClient.del(keys);
           }
   
           cursor = scanResult.cursor === 0 
             ? scanResult.cursor : scanResult.cursor + 1;
+        }
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async updateAllUserCache(userId: string, updatedUser: User, skip: string) {
+    try {
+      await this.client.executeIsolated(async (isolatedClient) => {
+        const scanIterator = isolatedClient.scanIterator({
+          TYPE: 'string',
+          MATCH: `trackmed_user_${userId}*`,
+          COUNT: 1000000
+        });
+  
+        for await (const key of scanIterator) {
+          if (skip !== key) {
+            await isolatedClient.set(
+              key,
+              JSON.stringify(updatedUser),
+              { XX: true, KEEPTTL: true }
+            );
+          }
         }
       });
     } catch (error) {
