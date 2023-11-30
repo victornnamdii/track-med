@@ -89,9 +89,6 @@ class MedicationController {
       }
 
       const report = ReminderClient.generateReport(medication);
-      if (report[0] === true) {
-        return res.status(400).json({ error: report[1] });
-      }
 
       const user =  medication.User;
 
@@ -100,7 +97,7 @@ class MedicationController {
 
       res.status(200).json({
         message: `Report for ${medication.name} successfully generated`,
-        report: report[1],
+        report,
         user
       });
     } catch (error) {

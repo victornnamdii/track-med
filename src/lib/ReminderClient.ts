@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import User from '../models/User';
 import { Medication, drugInfo } from '../models/Medication';
 import Reminder from '../models/Reminder';
@@ -6,11 +7,18 @@ import {
   changeToLocalTime,
   changeToUTC,
   convertDateAndTimeStringToLocal,
+  convertDateToString,
   createNewToken,
-  groupRemindersByName
+  groupRemindersByName,
 } from './handlers';
 import env from '../config/env';
 import BodyError from './BodyError';
+
+type MedicationReport = {
+  [keys: string]: {
+    [keys: string]: [string, boolean | string][];
+  };
+};
 
 class ReminderClient {
   static async createReminders(medication: Medication) {
@@ -21,9 +29,9 @@ class ReminderClient {
       const times = info.times as string[];
       times.forEach(async (time) => {
         try {
-          const message = `Hey ${user?.firstName
-          }! Remember to take ${info.dose} of your ${info.drugName
-          }. This is the reminder for your ${addSuffix(
+          const message = `Hey ${user?.firstName}! Remember to take ${
+            info.dose
+          } of your ${info.drugName}. This is the reminder for your ${addSuffix(
             times.indexOf(time) + 1
           )} dose today.`;
 
@@ -40,16 +48,14 @@ class ReminderClient {
             UserId: medication.UserId,
             userNotificationType: user?.notificationType,
             MedicationId: medication.id,
-            startDate: env.NODE_ENV === 'dev'
-              ? new Date(info.startDate) :
-              UTCTimeAndDate.startDate,
-            time: env.NODE_ENV === 'dev'
-              ? time : UTCTimeAndDate.time,
-            endDate: env.NODE_ENV === 'dev'
-              ? endDate :
-              UTCTimeAndDate.endDate,
+            startDate:
+              env.NODE_ENV === 'dev'
+                ? new Date(info.startDate)
+                : UTCTimeAndDate.startDate,
+            time: env.NODE_ENV === 'dev' ? time : UTCTimeAndDate.time,
+            endDate: env.NODE_ENV === 'dev' ? endDate : UTCTimeAndDate.endDate,
             message,
-            drugName: info.drugName
+            drugName: info.drugName,
           });
         } catch (error) {
           console.log(error);
@@ -70,10 +76,10 @@ class ReminderClient {
   ) {
     await Reminder.update(
       {
-        userNotificationType: notificationType
+        userNotificationType: notificationType,
       },
       {
-        where: { UserId }
+        where: { UserId },
       }
     );
   }
@@ -85,7 +91,7 @@ class ReminderClient {
     });
 
     if (validReminders.length === 0) {
-      return [true, 'Start date/time for drugs hasn\'t reached'];
+      throw new BodyError('Start date/time for drugs hasn\'t reached');
     }
 
     if (env.NODE_ENV !== 'dev') {
@@ -93,12 +99,8 @@ class ReminderClient {
     }
     const groupedReminders = groupRemindersByName(validReminders);
 
-    const report: {
-      [keys: string]: {
-        [keys: string]: [string, boolean | string][];
-      };
-    } = {};
-  
+    const report: MedicationReport = {};
+
     const drugs = Object.keys(groupedReminders);
     drugs.forEach((drug) => {
       report[drug] = {};
@@ -107,7 +109,9 @@ class ReminderClient {
         const datesAndStatuses = Object.entries(reminder.status);
         datesAndStatuses.forEach((dateAndStatus) => {
           if (report[drug][dateAndStatus[0]] === undefined) {
-            report[drug][dateAndStatus[0]] = [[reminder.time, dateAndStatus[1]]];
+            report[drug][dateAndStatus[0]] = [
+              [reminder.time, dateAndStatus[1]],
+            ];
           } else {
             report[drug][dateAndStatus[0]].push([
               reminder.time,
@@ -119,11 +123,11 @@ class ReminderClient {
 
       const drugDates = Object.keys(report[drug]);
       drugDates.forEach((date) => {
-        report[drug][date].sort((a, b) => a[0] > b[0] ? 1 : -1);
+        report[drug][date].sort((a, b) => (a[0] > b[0] ? 1 : -1));
       });
     });
 
-    return [false, report];
+    return report;
   }
 
   static async updateStatus(
@@ -142,10 +146,10 @@ class ReminderClient {
 
       await Reminder.update(
         {
-          status
+          status,
         },
         {
-          where: { id: reminder.id }
+          where: { id: reminder.id },
         }
       );
     }
@@ -154,40 +158,30 @@ class ReminderClient {
   static async snoozeReminder(
     reminder: Reminder,
     date: string,
+    snoozeDate: Date
   ) {
-    const [hour, minute] = reminder.time.split(':');
+    snoozeDate.setMinutes(snoozeDate.getMinutes() + 10);
 
-    let newMinute = Number(minute) + 10;
-    let newHour = Number(hour);
+    await ReminderClient.confirmSnoozeTime(reminder, date, snoozeDate);
 
-    const startDate = new Date(date as string);
+    const startDate = new Date(convertDateToString(snoozeDate));
 
-    if (newMinute > 59) {
-      newMinute -= 60;
-      newHour += 1;
-      const newDay = env.NODE_ENV === 'dev'
-        ? newHour > 23 : newHour > 22; // CHECK THIS LATER TIMEZONE STUFF
-
-      if (newDay) {
-        throw new BodyError(
-          'You can not snooze a medication reminder into a new day'
-        );
-      }
-    }
-
-    const time = `${newHour
+    const time = `${snoozeDate.getHours()
       .toString()
-      .padStart(2, '0')}:${newMinute
-      .toString()
-      .padStart(2, '0')}`;
+      .padStart(2, '0')}:${snoozeDate.getMinutes().toString().padStart(2, '0')}`;
 
-    const endDate = new Date(date);
+    const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + 1);
 
-    const localDateAndTime = env.NODE_ENV === 'dev'
-      ? [date, time]
-      : convertDateAndTimeStringToLocal(date, time);
+    const localDateAndTime =
+      env.NODE_ENV === 'dev'
+        ? [convertDateToString(snoozeDate), time]
+        : convertDateAndTimeStringToLocal(
+          convertDateToString(snoozeDate),
+          time
+        );
 
+    console.log(time);
     if (reminder.snoozed === false) {
       await Reminder.create({
         UserId: reminder.UserId,
@@ -199,7 +193,7 @@ class ReminderClient {
         message: reminder.message,
         drugName: reminder.drugName,
         snoozed: true,
-        ReminderId: reminder.id
+        ReminderId: reminder.id,
       });
     } else {
       await Reminder.update(
@@ -208,10 +202,10 @@ class ReminderClient {
           time,
           endDate,
           token: createNewToken(reminder.token),
-          status: {}
+          status: {},
         },
         {
-          where: { id: reminder.id }
+          where: { id: reminder.id },
         }
       );
     }
@@ -223,6 +217,67 @@ class ReminderClient {
     );
 
     return localDateAndTime;
+  }
+
+  static async confirmSnoozeTime(
+    reminder: Reminder,
+    originalDate: string,
+    snoozeDate: Date
+  ) {
+    const reminderDate = new Date(`${originalDate}T${reminder.time}`);
+    const newDay =
+      env.NODE_ENV === 'dev'
+        ? snoozeDate.getDate() !== reminderDate.getDate()
+        : snoozeDate.getDate() !== reminderDate.getDate() ||
+          (snoozeDate.getHours() === 23 && reminderDate.getHours() < 23); // CHECK THIS LATER TIMEZONE STUFF
+    
+    if (newDay) {
+      throw new BodyError(
+        'You can not snooze a medication reminder into a new day'
+      );
+    }
+
+    const relatedReminders = await Reminder.findAll({
+      where: {
+        id: { [Op.ne]: reminder.id },
+        MedicationId: reminder.MedicationId,
+        drugName: reminder.drugName,
+      },
+    });
+
+    const subsequentReminders = relatedReminders
+      .filter((relatedReminder) => {
+        const relatedReminderDate = new Date(
+          `${originalDate}T${relatedReminder.time}`
+        );
+        return reminderDate < relatedReminderDate;
+      })
+      .sort((a, b) => {
+        const aDate = new Date(`${originalDate}T${a.time}`);
+        const bDate = new Date(`${originalDate}T${b.time}`);
+
+        const returnValue = aDate > bDate ? 1 : -1;
+        return returnValue;
+      });
+    
+    subsequentReminders.forEach((subsequentReminder) => {
+      if (
+        snoozeDate >= new Date(`${originalDate}T${subsequentReminder.time}`)
+      ) {
+        throw new BodyError(
+          `Can't snooze this reminder because it will cross/overlap your ${
+            env.NODE_ENV === 'dev'
+              ? subsequentReminder.time
+              : convertDateAndTimeStringToLocal(
+                convertDateToString(
+                  new Date(`${originalDate}T${subsequentReminder.time}`)
+                ),
+                subsequentReminder.time
+              )[1]
+          } reminder`
+        );
+      }
+    });
   }
 }
 

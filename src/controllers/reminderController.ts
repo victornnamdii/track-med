@@ -34,17 +34,22 @@ class ReminderController {
         : reminder;
 
       const validStatus = validReminder.status;
-  
-      if (validStatus[date as string] === false) {
-        validStatus[date as string] = true;
+      const validStatusValue = validStatus[date as string];
 
-        await Reminder.update(
-          { status: validStatus },
-          {
-            where: { id: validReminder.id }
-          }
-        );
+      if (validStatusValue === true) {
+        return res.status(400).json({ 
+          error: 'Already marked this reminder as complete'
+        });
       }
+
+      validStatus[date as string] = true;
+
+      await Reminder.update(
+        { status: validStatus },
+        {
+          where: { id: validReminder.id }
+        }
+      );
 
       res.status(200).json({ message: 'Thank you for taking your drugs!' });
     } catch (error) {
@@ -58,6 +63,7 @@ class ReminderController {
     next: NextFunction
   ) {
     try {
+      const RequestDate = new Date();
       const { ReminderId } = req.params;
       const { token, date } = req.query;
 
@@ -77,13 +83,21 @@ class ReminderController {
         return res.status(400).json({ error: 'Invalid reminder link' });
       }
 
-      if (typeof statusValue === 'string') {
-        return res.status(400).json({ error: 'Already snoozed this reminder' });
+      const validReminder = typeof statusValue === 'string'
+        ? await Reminder.findOne({ where: { ReminderId } }) as Reminder
+        : reminder;
+      
+      const validStatus = validReminder.status;
+      const validStatusValue = validStatus[date as string];
+
+      if (validStatusValue === true) {
+        return res.status(400).json({ error: 'Already marked this reminder as complete' });
       }
 
       const [newDate, time] = await ReminderClient.snoozeReminder(
-        reminder,
-        date as string
+        validReminder,
+        date as string,
+        RequestDate
       );
 
       res.status(200).json({
