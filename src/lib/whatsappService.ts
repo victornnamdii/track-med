@@ -24,7 +24,7 @@ class WhatsappClient {
       `*‼️REMINDER FOR ${medicationName
         .toUpperCase()}💊 ‼️*\n\n${
         message}\n\nIf you have taken them, Open the link below:\n\n${
-        link}\n\n Click the link below to *snooze for 10 minutes from the time of this notification*\n\n${
+        link}\n\n Click the link below to *snooze for 10 minutes.*\n\n${
         snoozeLink}`
     };
     await this.client.post(`/text?token=${env.WHAPI_TOKEN}`, data);

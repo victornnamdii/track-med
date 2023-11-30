@@ -20,7 +20,7 @@ Reminder.belongsTo(Medication, {
   onUpdate: 'CASCADE',
 });
 
-Reminder.belongsTo(Reminder, {
+Reminder.hasOne(Reminder, {
   onDelete: 'CASCADE',
   onUpdate: 'CASCADE',
 });
