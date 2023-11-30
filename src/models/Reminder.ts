@@ -116,6 +116,9 @@ Reminder.init(
       },
       {
         fields: ['endDate']
+      },
+      {
+        fields: ['MedicationId']
       }
     ],
     hooks: {

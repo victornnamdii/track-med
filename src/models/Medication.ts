@@ -148,18 +148,15 @@ Medication.init(
                   `Invalid format for ${drug.drugName} custom hours`
                 );
               }
-              let wrongValue = false;
 
               drug.customTimes.forEach((value) => {
                 if (!checkTime(value)) {
-                  wrongValue = true;
+                  throw new BodyError(
+                    `Values for ${drug
+                      .drugName}'s custom times should be in the format HH:MM ({0-23}:{0-59})`
+                  );
                 }
               });
-              if (wrongValue) {
-                throw new BodyError(
-                  `Values for ${drug.drugName}'s custom times should be in the format HH:MM`
-                );
-              }
             }
 
             const drugNames = drugInfo.filter((drugInside) => {

@@ -54,7 +54,7 @@ class EmailService {
       subject: `Reminder for ${medicationName}`,
       html: `<p>${message}</p><p>Click <a href=${
         link}>here</a> <b>if you have taken them.</b></p><p>OR</p><p>Click <a href=${
-        snoozeLink}>here</a> to <b>snooze the reminder for 10 minutes from the time of this notification.</b></p>`,
+        snoozeLink}>here</a> to <b>snooze the reminder for 10 minutes</b></p>`,
     };
 
     await this.transporter.sendMail(mailOptions);
