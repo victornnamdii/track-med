@@ -68,22 +68,25 @@ class RedisClient {
     }
   }
 
-  async updateAllUserCache(userId: string, updatedUser: User, skip: string) {
+  async updateAllUserCache(updatedUser: User, skip: string) {
     try {
       await this.client.executeIsolated(async (isolatedClient) => {
         const scanIterator = isolatedClient.scanIterator({
           TYPE: 'string',
-          MATCH: `trackmed_user_${userId}*`,
+          MATCH: `trackmed_user_${updatedUser.id}*`,
           COUNT: 1000000
         });
   
         for await (const key of scanIterator) {
           if (skip !== key) {
-            await isolatedClient.set(
+            const multi = isolatedClient.multi();
+            await isolatedClient.watch(key);
+            multi.set(
               key,
               JSON.stringify(updatedUser),
               { XX: true, KEEPTTL: true }
             );
+            await multi.exec();
           }
         }
       });
